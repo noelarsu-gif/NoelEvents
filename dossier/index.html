@@ -133,7 +133,8 @@ h1 em,h2 em{font-style:italic;color:var(--gold2);font-weight:300}
   .tx{padding-left:max(6vw,env(safe-area-inset-left,0px));padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
   .tx.top-t{top:calc(84px + env(safe-area-inset-top,0px))}
 }
-@media (max-width:420px){ .chap button{padding:9px 10px;letter-spacing:.1em} }
+@media (max-width:420px){ .chap button{padding:9px 8px;letter-spacing:.06em;font-size:9.5px} }
+@media (max-width:360px){ .chap button{padding:9px 6px;letter-spacing:.02em;font-size:9px} }
 /* opiniones */
 #L-op{background:var(--bg)}
 #L-op .bgimg{position:absolute;inset:-6%;width:112%;height:112%;object-fit:cover;filter:blur(22px) saturate(.8);opacity:.5}
@@ -294,6 +295,7 @@ h1 em,h2 em{font-style:italic;color:var(--gold2);font-weight:300}
   <button type="button" data-go="foto" data-t="nFo"></button>
   <button type="button" data-go="360" data-t="n36"></button>
   <button type="button" data-go="fx" data-t="nFx"></button>
+  <button type="button" data-go="op" data-t="nOp"></button>
 </nav>
 
 <script>
@@ -332,7 +334,7 @@ es:{
   manifEv:"Vosotros disfrutáis. *Nosotros* nos ocupamos del resto: fotos impresas al momento, vídeos que se comparten antes de que acabe la canción y detalles que convierten una boda en *un recuerdo para siempre.*",
   heroHEv:"Momentos que<br><em>se recuerdan</em>", heroPEv:"para el día más especial.", y:"y",
   sv:{dj:"DJ",foto:"fotomatón","360":"plataforma 360",fx:"efectos especiales"},
-  nDJ:"Música", nFo:"Fotomatón", n36:"360", nFx:"Efectos",
+  nDJ:"Música", nFo:"Fotomatón", n36:"360", nFx:"Efectos", nOp:"Opiniones",
   opEye:"Opiniones", opH:"Lo que dicen<br><em>las parejas</em>", opFoot:"Opiniones reales de nuestras parejas", boda:"Boda del"
 },
 ca:{
@@ -365,7 +367,7 @@ ca:{
   manifEv:"Vosaltres gaudiu. *Nosaltres* ens ocupem de la resta: fotos impreses al moment, vídeos que es comparteixen abans que s’acabi la cançó i detalls que converteixen un casament en *un record per sempre.*",
   heroHEv:"Moments que<br><em>es recorden</em>", heroPEv:"per al dia més especial.", y:"i",
   sv:{dj:"DJ",foto:"fotomatón","360":"plataforma 360",fx:"efectes especials"},
-  nDJ:"Música", nFo:"Fotomatón", n36:"360", nFx:"Efectes",
+  nDJ:"Música", nFo:"Fotomatón", n36:"360", nFx:"Efectes", nOp:"Opinions",
   opEye:"Opinions", opH:"El que diuen<br><em>les parelles</em>", opFoot:"Opinions reals de les nostres parelles", boda:"Casament del"
 }};
 /* ===== Opiniones reales (Bodas.net). m: "dj" = solo con DJ · "ev" = solo sin DJ · "all" = siempre ===== */
@@ -474,8 +476,9 @@ if (EV) {
   $("#signN").textContent = "Noel Events"; $("#signS").textContent = "Fotomatón · Plataforma 360 · Lleida";
   document.title = "Noel Events · Experiencias";
 }
-const GO = {dj:"dj", foto:"foto", "360":"r360", fx:"fx"};
-document.querySelectorAll("#chap button").forEach(b => { if (!ON.includes(b.dataset.go)) b.remove(); });
+const GO = {dj:"dj", foto:"foto", "360":"r360", fx:"fx", op:"op"};
+const NAV = SC.op.off ? ON.slice() : ON.concat("op");
+document.querySelectorAll("#chap button").forEach(b => { if (!NAV.includes(b.dataset.go)) b.remove(); });
 
 function layout(){
   W = stage.clientWidth; H = stage.clientHeight; PORT = H > W*1.05;
@@ -704,8 +707,8 @@ function frame(){
   if (Math.abs(s - lastS) < 0.0004) return; lastS = s;
   hero(s); dj(s); foto(s); r360(s); fx(s); if (!SC.op.off) op(s); mo(s);
   prog.style.transform = `scaleX(${clamp(s/END)})`;
-  chap.classList.toggle("on", s > SC.hero.b - .2 && s < (SC.op.off ? SC.mo.a : SC.op.a) + .3);
-  let cur = ON[0]; ON.forEach(k => { if (s >= SC[GO[k]].a + .3) cur = k; });
+  chap.classList.toggle("on", s > SC.hero.b - .2 && s < SC.mo.a + .3);
+  let cur = NAV[0]; NAV.forEach(k => { if (s >= SC[GO[k]].a + .3) cur = k; });
   chap.querySelectorAll("button").forEach(b => b.classList.toggle("act", b.dataset.go === cur));
   // precarga de la siguiente escena
   [["dj","#L-dj"],["foto","#L-foto"],["r360","#L-360"],["fx","#L-fx"]].forEach(([k,sel]) => { if (!SC[k].off && s > SC[k].a - 1.6) warm(sel); });
@@ -720,7 +723,7 @@ let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() 
 
 chap.querySelectorAll("button").forEach(b => b.onclick = () => {
   const k = GO[b.dataset.go];
-  scrollTo({ top: track.offsetTop + (SC[k].a + 1.0) * H, behavior: RM ? "auto" : "smooth" });
+  scrollTo({ top: track.offsetTop + (SC[k].a + (k === "op" ? 1.45 : 1.0)) * H, behavior: RM ? "auto" : "smooth" });
 });
 document.querySelector(".mark").onclick = e => { e.preventDefault(); scrollTo({top:0, behavior:"smooth"}); };
 
@@ -732,7 +735,7 @@ hv.addEventListener("canplay", go, {once:true}); setTimeout(go, 2200);
 setTimeout(() => { const f = ON[0]; warm({dj:"#L-dj",foto:"#L-foto","360":"#L-360",fx:"#L-fx"}[f]); }, 2500);
 // Enlace directo a un capítulo (#foto, #360…)
 const H0 = decodeURIComponent(location.hash.slice(1));
-if (ON.includes(H0)) { lifted = true; $("#curtain").style.display = "none"; requestAnimationFrame(() => { scrollTo(0, track.offsetTop + (SC[GO[H0]].a + 1.0) * H); lastS = -1; frame(); }); }
+if (NAV.includes(H0)) { lifted = true; $("#curtain").style.display = "none"; requestAnimationFrame(() => { scrollTo(0, track.offsetTop + (SC[GO[H0]].a + 1.0) * H); lastS = -1; frame(); }); }
 </script>
 </body>
 </html>
