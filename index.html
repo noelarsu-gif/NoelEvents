@@ -465,7 +465,7 @@ function dossierLink(base, t, cap, lang = "es"){
   if (list.length < 4) q.set("s", list.join(","));
   q.set("l", lang === "ca" ? "ca" : "es");
   const qs = q.toString();
-  return DOSSIER_DEF + (qs ? "?" + qs : "") + (cap && list.includes(cap) ? "#" + cap : "");
+  return DOSSIER_DEF + (qs ? "?" + qs : "") + (cap && (list.includes(cap) || cap === "op") ? "#" + cap : "");
 }
 const catFile = (t, lang = catLang()) => (lang === "ca" ? "Cataleg " : "Catalogo ") + ((t && t.marca === "events") ? "Noel Events 2027.pdf" : "Noel DJ 2027.pdf");
 // Idioma del catálogo (se recuerda en este móvil)
@@ -474,9 +474,9 @@ const setCatLang = l => { try { localStorage.setItem("ne_catlang", l === "ca" ? 
 // Textos que dibuja la app sobre las páginas
 const CAT_TXT = {
   es: { tagline: "Los recuerdos y los momentos", serv: { dj:"DJ", foto:"FOTOMATÓN", p360:"PLATAFORMA 360", fuego:"FUEGO FRÍO", humo:"HUMO DE COLORES" }, intro: "AÑOS OFRECIENDO SERVICIOS PARA BODAS", introW: 403,
-        vid: "VER BODAS REALES EN VÍDEO", vFoto: "VER EL FOTOMATÓN EN VÍDEO", v360: "VER LA PLATAFORMA 360 EN VÍDEO", banL: "NUEVO · BODAS REALES EN VÍDEO", banT: "Vivid la experiencia antes del gran día", title: "Catálogo" },
+        vid: "VER BODAS REALES EN VÍDEO", ops: "QUÉ OPINAN DE NOSOTROS", vFoto: "VER EL FOTOMATÓN EN VÍDEO", v360: "VER LA PLATAFORMA 360 EN VÍDEO", banL: "NUEVO · BODAS REALES EN VÍDEO", banT: "Vivid la experiencia antes del gran día", title: "Catálogo" },
   ca: { tagline: "Els records i els moments", serv: { dj:"DJ", foto:"FOTOMATÓN", p360:"PLATAFORMA 360", fuego:"FOC FRED", humo:"FUM DE COLORS" }, intro: "ANYS OFERINT SERVEIS PER A CASAMENTS", introW: 560,
-        vid: "VEURE CASAMENTS REALS EN VÍDEO", vFoto: "VEURE EL FOTOMATÓN EN VÍDEO", v360: "VEURE LA PLATAFORMA 360 EN VÍDEO", banL: "NOU · CASAMENTS REALS EN VÍDEO", banT: "Viviu l’experiència abans del gran dia", title: "Catàleg" } };
+        vid: "VEURE CASAMENTS REALS EN VÍDEO", ops: "QUÈ EN DIUEN DE NOSALTRES", vFoto: "VEURE EL FOTOMATÓN EN VÍDEO", v360: "VEURE LA PLATAFORMA 360 EN VÍDEO", banL: "NOU · CASAMENTS REALS EN VÍDEO", banT: "Viviu l’experiència abans del gran dia", title: "Catàleg" } };
 // En catalán algunos precios pequeños quedan desplazados (el texto de delante es más largo o más corto)
 const CAT_DX_CA = { "5:fuegoPack": 8, "8:fuegoPack": -53 };
 const catFmt = n => Math.round(num(n)).toLocaleString("es-ES", { useGrouping: "always" });
@@ -574,6 +574,15 @@ async function buildCatalog(t, dossier, lang = "es"){
         ctx.font = "600 31px Montserrat"; ctx.fillStyle = "rgb(243,238,228)"; const tx = TX.vid;
         track(ctx, x + w / 2 - trackW(ctx, tx, 7) / 2, y + h / 2 + 170, tx, 7);
         enlaces.push([x, y, w, h, dossierLink(dossier, t, null, lang)]);
+        // Botón "Qué opinan de nosotros" junto a los años de experiencia → opiniones de la web
+        const star = (cx, cy, r) => { ctx.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI/2 + k*Math.PI/5, rr = k % 2 ? r*.45 : r; ctx.lineTo(cx + rr*Math.cos(a), cy + rr*Math.sin(a)); } ctx.closePath(); ctx.fill(); };
+        ctx.font = "600 29px Montserrat"; const OT = TX.ops, ow = trackW(ctx, OT, 5);
+        const OH = 112, OW = Math.round(56 + 5*34 + 30 + ow + 56), OX = 2164 - OW, OY = 2560;
+        const og = ctx.createLinearGradient(OX, 0, OX + OW, 0); og.addColorStop(0, "rgb(226,200,138)"); og.addColorStop(1, GOLD);
+        ctx.fillStyle = og; ctx.fillRect(OX, OY, OW, OH);
+        ctx.fillStyle = DARK; for (let k = 0; k < 5; k++) star(OX + 56 + 15 + k*34, OY + OH/2, 14);
+        ctx.textBaseline = "middle"; track(ctx, OX + 56 + 5*34 + 30, OY + OH/2 + 2, OT, 5); ctx.textBaseline = "alphabetic";
+        enlaces.push([OX, OY, OW, OH, dossierLink(dossier, t, "op", lang)]);
       }
       if (pg === 3 || pg === 4) {
         const BX = 216, BY = 2770, BH = 120, BTXT = pg === 3 ? TX.vFoto : TX.v360;
@@ -601,7 +610,7 @@ async function buildCatalog(t, dossier, lang = "es"){
   pdf.setProperties(t.marca === "events" ? { title: TX.title + " Noel Events 2027", author: "Noel Events" } : { title: TX.title + " Noel DJ 2027", author: "Noel DJ · Music & Events" });
   return pdf.output("blob");
 }
-const catKey = t => JSON.stringify([t.precios, t.servicios || null, t.marca || "dj", dossierBase(), catLang(), 3]);
+const catKey = t => JSON.stringify([t.precios, t.servicios || null, t.marca || "dj", dossierBase(), catLang(), 4]);
 // Enlace directo a la web en vídeo (con la marca, servicios e idioma de la tarifa)
 async function webDo(modo, t){
   const lang = catLang(), url = dossierLink(dossierBase(), t, null, lang) || DOSSIER_DEF;
