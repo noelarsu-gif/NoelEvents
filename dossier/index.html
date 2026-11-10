@@ -134,6 +134,28 @@ h1 em,h2 em{font-style:italic;color:var(--gold2);font-weight:300}
   .tx.top-t{top:calc(84px + env(safe-area-inset-top,0px))}
 }
 @media (max-width:420px){ .chap button{padding:9px 10px;letter-spacing:.1em} }
+/* opiniones */
+#L-op{background:var(--bg)}
+#L-op .bgimg{position:absolute;inset:-6%;width:112%;height:112%;object-fit:cover;filter:blur(22px) saturate(.8);opacity:.5}
+#L-op .veil{position:absolute;inset:0;background:radial-gradient(ellipse 80% 70% at 50% 45%,rgba(11,10,8,.62),rgba(11,10,8,.96))}
+.op-head{position:absolute;z-index:5;left:0;right:0;top:calc(78px + env(safe-area-inset-top,0px));text-align:center;padding-inline:max(22px,env(safe-area-inset-left,0px));opacity:0;visibility:hidden}
+.op-head .eye{justify-content:center;margin-bottom:10px}
+.op-head .eye::before{content:"";height:1px;width:44px;background:linear-gradient(270deg,var(--gold),transparent)}
+.op-head h2{font-size:clamp(30px,5vw,54px)}
+.q{position:absolute;z-index:5;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;text-align:center;opacity:0;visibility:hidden;will-change:transform,opacity,filter;
+  padding-top:calc(150px + env(safe-area-inset-top,0px));padding-bottom:calc(170px + env(safe-area-inset-bottom,0px));padding-left:max(26px,env(safe-area-inset-left,0px));padding-right:max(26px,env(safe-area-inset-right,0px))}
+.q figure{margin:0;max-width:860px}
+.q blockquote{margin:0;font-family:var(--display);font-style:italic;font-weight:300;font-size:clamp(25px,4.2vw,44px);line-height:1.17;text-wrap:balance;color:var(--ink)}
+.q blockquote::before{content:"\201C";display:block;font-family:var(--num);font-style:normal;font-size:72px;line-height:.5;color:var(--gold);margin-bottom:22px}
+.q .stars{margin-top:24px;color:var(--gold);font-size:11px;letter-spacing:.42em}
+.q figcaption{margin-top:12px;font-size:10.5px;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:var(--gold2)}
+.q figcaption span{display:block;margin-top:8px;font-size:12.5px;font-weight:300;letter-spacing:.04em;text-transform:none;color:var(--muted)}
+.q .tag2{display:inline-block;margin-top:14px;font-size:9.5px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--ink2);padding:6px 11px;border:1px solid rgba(201,169,97,.35);border-radius:99px}
+.op-foot{position:absolute;z-index:5;left:0;right:0;bottom:calc(128px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:12px;opacity:0;visibility:hidden}
+.op-dots{display:flex;gap:7px}
+.op-dots i{width:5px;height:5px;border-radius:50%;background:rgba(201,169,97,.28);transition:background .4s,transform .4s}
+.op-dots i.on{background:var(--gold2);transform:scale(1.35)}
+.op-foot small{font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted)}
 /* aviso de scroll sutil durante todo el recorrido (aparece cuando dejas de deslizar) */
 .cue2{position:fixed;z-index:29;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px);display:flex;flex-direction:column;align-items:center;gap:8px;
   font-size:8.5px;letter-spacing:.36em;text-transform:uppercase;color:var(--ink2);opacity:0;pointer-events:none;transition:opacity .7s ease,transform .7s cubic-bezier(.22,.8,.24,1);text-shadow:0 1px 8px rgba(0,0,0,.6)}
@@ -232,6 +254,14 @@ h1 em,h2 em{font-style:italic;color:var(--gold2);font-weight:300}
     </div>
 
     <!-- 5 · Momento -->
+    <!-- Opiniones -->
+    <div class="layer" id="L-op">
+      <img class="bgimg" src="v/grupo.jpg" alt="" decoding="async"><div class="veil"></div>
+      <div class="op-head" id="op-head"><p class="eye"><span class="n" id="op-n">05</span><span data-t="opEye"></span></p><h2 data-t="opH"></h2></div>
+      <div id="op-list"></div>
+      <div class="op-foot" id="op-foot"><div class="op-dots" id="op-dots"></div><small data-t="opFoot"></small></div>
+    </div>
+
     <div class="layer" id="L-mo">
       <div class="box" id="b-mo"><img id="i-mo" src="v/humo.jpg" alt="" decoding="async"></div>
       <div class="shade"></div><div class="dim" id="d-mo"></div>
@@ -302,7 +332,8 @@ es:{
   manifEv:"Vosotros disfrutáis. *Nosotros* nos ocupamos del resto: fotos impresas al momento, vídeos que se comparten antes de que acabe la canción y detalles que convierten una boda en *un recuerdo para siempre.*",
   heroHEv:"Momentos que<br><em>se recuerdan</em>", heroPEv:"para el día más especial.", y:"y",
   sv:{dj:"DJ",foto:"fotomatón","360":"plataforma 360",fx:"efectos especiales"},
-  nDJ:"Música", nFo:"Fotomatón", n36:"360", nFx:"Efectos"
+  nDJ:"Música", nFo:"Fotomatón", n36:"360", nFx:"Efectos",
+  opEye:"Opiniones", opH:"Lo que dicen<br><em>las parejas</em>", opFoot:"Opiniones reales publicadas en Bodas.net", boda:"Boda del"
 },
 ca:{
   heroEye:"Casaments · Lleida i Catalunya",
@@ -334,8 +365,42 @@ ca:{
   manifEv:"Vosaltres gaudiu. *Nosaltres* ens ocupem de la resta: fotos impreses al moment, vídeos que es comparteixen abans que s’acabi la cançó i detalls que converteixen un casament en *un record per sempre.*",
   heroHEv:"Moments que<br><em>es recorden</em>", heroPEv:"per al dia més especial.", y:"i",
   sv:{dj:"DJ",foto:"fotomatón","360":"plataforma 360",fx:"efectes especials"},
-  nDJ:"Música", nFo:"Fotomatón", n36:"360", nFx:"Efectes"
+  nDJ:"Música", nFo:"Fotomatón", n36:"360", nFx:"Efectes",
+  opEye:"Opinions", opH:"El que diuen<br><em>les parelles</em>", opFoot:"Opinions reals publicades a Bodas.net", boda:"Casament del"
 }};
+/* ===== Opiniones reales (Bodas.net). m: "dj" = solo con DJ · "ev" = solo sin DJ · "all" = siempre ===== */
+const OPS = [
+  { n:"Nerea", d:"2023-06-24", m:"dj", tag:{es:"Pack completo",ca:"Pack complet"},
+    es:"Cogimos el pack completo, DJ Noel + Fotomatón + 360°, salió todo perfecto y nuestra familia se lo pasó genial. ¡Son grandes profesionales!",
+    ca:"Vam agafar el pack complet, DJ Noel + Fotomatón + 360°, va sortir tot perfecte i la nostra família s’ho va passar genial. Són grans professionals!" },
+  { n:"Krístel", d:"2023-09-09", m:"ev", tag:{es:"Fotomatón · 360",ca:"Fotomatón · 360"},
+    es:"Unos profesionales de pies a cabeza. Tanto los invitados como nosotras quedamos encantados con el fotomatón y la plataforma 360.",
+    ca:"Uns professionals de cap a peus. Tant els convidats com nosaltres vam quedar encantats amb el fotomatón i la plataforma 360." },
+  { n:"Mireya", d:"2023-09-09", m:"all",
+    es:"Tanto él como su mujer, muy atentos y agradables. Si lo hubiese sabido, les dejo un sitio en nuestra mesa de invitados.",
+    ca:"Tant ell com la seva dona, molt atents i agradables. Si ho hagués sabut, els hauria deixat un lloc a la nostra taula de convidats." },
+  { n:"Krístel", d:"2023-09-09", m:"dj",
+    es:"Todas las canciones, a su justo tiempo. ¡Una fiesta increíble! Nos hicieron pasar una noche genial.",
+    ca:"Totes les cançons, al moment just. Una festa increïble! Ens van fer passar una nit genial." },
+  { n:"Bea", d:"2017-05-06", m:"dj",
+    es:"Les pedimos un remix para el baile y en nada de tiempo lo teníamos hecho. Sin ellos no hubiera sido perfecto.",
+    ca:"Els vam demanar un remix per al ball i en un no res el teníem fet. Sense ells no hauria estat perfecte." },
+  { n:"Patricia", d:"2024-04-27", m:"all",
+    es:"Desde el primer momento fue de 10. Estuvo muy profesional y atento con nosotros y nuestros invitados. ¡El resultado fue fantástico!",
+    ca:"Des del primer moment va ser de 10. Va estar molt professional i atent amb nosaltres i els nostres convidats. El resultat va ser fantàstic!" },
+  { n:"Escarlet", d:"2017-05-27", m:"ev",
+    es:"Gracias a él y a su profesionalidad, nuestro día fue inolvidable.",
+    ca:"Gràcies a ell i a la seva professionalitat, el nostre dia va ser inoblidable." },
+  { n:"Jose", d:"2016-08-20", m:"all",
+    es:"Se adapta a todos los lugares y momentos. Seriedad, saber estar, enrollado… un crack.",
+    ca:"S’adapta a tots els llocs i moments. Serietat, saber estar, enrotllat… un crack." },
+  { n:"Rafael", d:"2023-08-26", m:"all",
+    es:"Un trato magnífico incluso a última hora, cuando la gente iba un poco más alegre. ¡Jajaja, lo recomiendo 100%!",
+    ca:"Un tracte magnífic fins i tot a última hora, quan la gent anava una mica més alegre. Jajaja, el recomano al 100%!" }
+];
+const MES_ES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const MES_CA = ["gener","febrer","març","abril","maig","juny","juliol","agost","setembre","octubre","novembre","desembre"];
+const opFecha = (iso, l) => { const [y,m,d] = iso.split("-").map(Number); return l === "ca" ? `${d} ${/^[ao]/.test(MES_CA[m-1]) ? "d’" : "de "}${MES_CA[m-1]} de ${y}` : `${d} de ${MES_ES[m-1]} de ${y}`; };
 
 const $ = s => document.querySelector(s);
 /* ===== Modo según el enlace: ?m=events&s=foto,360 · #foto salta al capítulo ===== */
@@ -367,6 +432,9 @@ function applyLang(l){
   $("#manif").innerHTML = html; WORDS = [...document.querySelectorAll("#manif .w")];
   document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", b.dataset.l === l));
   try{ localStorage.setItem("nd_lang", l); }catch(_){}
+  $("#op-list").innerHTML = OPV.map(o => `<div class="q"><figure><blockquote>${o[l]}</blockquote><div class="stars" aria-label="5 estrellas">★★★★★</div><figcaption>${o.n}<span>${d.boda} ${opFecha(o.d, l)}</span></figcaption>${o.tag ? `<span class="tag2">${o.tag[l]}</span>` : ""}</figure></div>`).join("");
+  $("#op-dots").innerHTML = OPV.map(() => "<i></i>").join("");
+  $("#op-n").textContent = String(ON.length + 1).padStart(2, "0");
   const num = {dj:"#L-dj", foto:"#L-foto", "360":"#L-360", fx:"#L-fx"};
   ON.forEach((k,i) => { const n = document.querySelector(num[k] + " .eye .n"); if (n) n.textContent = String(i+1).padStart(2,"0"); });
   lastS = -1; frame();
@@ -390,10 +458,12 @@ const K = .5;          // tamaño de la tarjeta en la metamorfosis
 const RAD = 26;        // radio visible de la tarjeta
 
 // Línea de tiempo (en pantallas desplazadas)
-const LEN = { hero:2.6, dj:3.8, foto:4.2, r360:4.0, fx:4.0, mo:2.6 };
+const OPV = OPS.filter(o => o.m === "all" || (o.m === "dj" ? ON.includes("dj") : !ON.includes("dj")));
+const OP_A = 1.0, OP_STEP = 1.0;
+const LEN = { hero:2.6, dj:3.8, foto:4.2, r360:4.0, fx:4.0, op: OP_A + OPV.length * OP_STEP + .6, mo:2.6 };
 const SC = {}; let at = 0;
-["hero","dj","foto","r360","fx","mo"].forEach(k => {
-  const on = k === "hero" || k === "mo" || ON.includes(k === "r360" ? "360" : k);
+["hero","dj","foto","r360","fx","op","mo"].forEach(k => {
+  const on = k === "hero" || k === "mo" || (k === "op" ? OPV.length > 0 : ON.includes(k === "r360" ? "360" : k));
   if (!on) { SC[k] = { a:-99, b:-98, off:true }; return; }
   SC[k] = { a: at, b: at + LEN[k] }; at = at + LEN[k] - .2;
 });
@@ -597,6 +667,23 @@ function fx(s){
   txWin($("#t-x2"), u, 2.4, 2.75, 3.4, 3.6);
 }
 
+function op(s){
+  const L = $("#L-op"), u = s - SC.op.a, len = SC.op.b - SC.op.a;
+  if (!morph(L, u, len)) return;
+  const h = eo(seg(u,.35,.8)) * (1 - seg(u,len-.55,len-.3)); show($("#op-head"), h, (1-h)*24);
+  show($("#op-foot"), h, 0);
+  const qs = L.querySelectorAll(".q"), dots = L.querySelectorAll(".op-dots i");
+  qs.forEach((q, i) => {
+    const a = OP_A + i * OP_STEP, last = i === qs.length - 1;
+    const tin = eo(seg(u, a - .05, a + .3)), tout = last ? seg(u, len-.55, len-.3) : eio(seg(u, a + .72, a + .98));
+    const o = tin * (1 - tout);
+    q.style.opacity = o; q.style.visibility = o < .005 ? "hidden" : "visible";
+    q.style.transform = `translate3d(0,${(1-tin)*38 - tout*30}px,0) scale(${.97 + .03*tin})`;
+    q.style.filter = (1 - tin) + tout > .02 ? `blur(${((1-tin) + tout) * 7}px)` : "none";
+    if (dots[i]) dots[i].classList.toggle("on", u >= a - .2 && (last || u < a + .85));
+  });
+  L.querySelector(".bgimg").style.transform = `scale(${1 + .08*seg(u,0,len)})`;
+}
 function mo(s){
   const L = $("#L-mo"), u = s - SC.mo.a, len = SC.mo.b - SC.mo.a;
   const vis = morph(L, u, len + 5, {noOut:true});
@@ -615,9 +702,9 @@ function frame(){
   ticking = false;
   const s = Math.max(0, -track.getBoundingClientRect().top / H);
   if (Math.abs(s - lastS) < 0.0004) return; lastS = s;
-  hero(s); dj(s); foto(s); r360(s); fx(s); mo(s);
+  hero(s); dj(s); foto(s); r360(s); fx(s); if (!SC.op.off) op(s); mo(s);
   prog.style.transform = `scaleX(${clamp(s/END)})`;
-  chap.classList.toggle("on", s > SC.hero.b - .2 && s < SC.mo.a + .2);
+  chap.classList.toggle("on", s > SC.hero.b - .2 && s < (SC.op.off ? SC.mo.a : SC.op.a) + .3);
   let cur = ON[0]; ON.forEach(k => { if (s >= SC[GO[k]].a + .3) cur = k; });
   chap.querySelectorAll("button").forEach(b => b.classList.toggle("act", b.dataset.go === cur));
   // precarga de la siguiente escena
