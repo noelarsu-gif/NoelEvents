@@ -96,6 +96,7 @@ img{max-width:100%}
 .f .chip:has(input:checked){border-color:var(--gold);color:var(--ink);background:rgba(201,169,97,.08)}
 .cat-list{display:flex;flex-direction:column;border-top:1px solid var(--line)}
 .cat-lang{padding:4px 0 2px;gap:10px;flex-wrap:wrap}
+.cat-web .cat-name::after{content:" ▶";font-size:.6em;color:var(--gold);vertical-align:.2em}
 .cat-row{display:grid;grid-template-columns:minmax(0,1fr) 132px;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
 .cat-info{display:flex;flex-direction:column;gap:3px;min-width:0}
 .cat-name{font-family:var(--display);font-size:20px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -597,6 +598,15 @@ async function buildCatalog(t, dossier, lang = "es"){
   return pdf.output("blob");
 }
 const catKey = t => JSON.stringify([t.precios, t.servicios || null, t.marca || "dj", dossierBase(), catLang(), 3]);
+// Enlace directo a la web en vídeo (con la marca, servicios e idioma de la tarifa)
+async function webDo(modo, t){
+  const lang = catLang(), url = dossierLink(dossierBase(), t, null, lang) || DOSSIER_DEF;
+  const txt = lang === "ca" ? "Mireu com són els nostres casaments, en vídeo:" : "Mirad cómo son nuestras bodas, en vídeo:";
+  if (modo === "open") { window.open(url, "_blank", "noopener"); return; }
+  if (modo === "copy") { copyText(txt + " " + url); return; }
+  if (navigator.share) { try { await navigator.share({ title: t.marca === "events" ? "Noel Events" : "Noel DJ", text: txt, url }); return; } catch(e) { if (e && e.name === "AbortError") return; } }
+  window.open("https://wa.me/?text=" + encodeURIComponent(txt + " " + url), "_blank", "noopener");
+}
 function catPanel(){
   const ts = (S.cats || CAT_DEFAULT).tarifas;
   const resumen = t => { const sv = { ...SERV_ALL, ...(t.servicios || {}) }; const on = CAT_SERV.filter(([k]) => sv[k]); return on.length === CAT_SERV.length ? "Todos los servicios" : on.map(([, l]) => l.replace(/ \(.*\)/, "")).join(" · "); };
@@ -605,6 +615,8 @@ function catPanel(){
     <div class="cat-list">${ts.map(t => { const ready = catCache[t.id] && catCache[t.id].key === catKey(t);
       return `<div class="cat-row"><div class="cat-info"><span class="cat-name">${esc(t.nombre)}</span><span class="cat-sub">${esc(resumen(t))}</span></div>
       <button class="btn sm ${ready ? "primary" : ""} tap cat-btn" data-act="cat" data-v="${t.id}">${ready ? I.wa + " Compartir" : I.pdf + " Preparar"}</button></div>`; }).join("")}</div>
+    <div class="cat-row cat-web"><div class="cat-info"><span class="cat-name">Web en vídeo</span><span class="cat-sub">Bodas reales · ${catLang() === "ca" ? "en catalán" : "en castellano"}</span></div>
+      <button class="btn sm tap cat-btn" data-act="webshare">${I.wa} Compartir</button></div>
     <p class="sub" style="margin:0;line-height:1.5">El archivo no lleva el nombre de la tarifa: los novios no saben cuál les envías.</p></div>`;
 }
 // Solo se editan los precios de los servicios que se ofrecen en esa tarifa
@@ -1437,6 +1449,13 @@ document.addEventListener("click", async ev => {
       catch(err){ console.log("[NoelEvents] catálogo", err); toast("No se ha podido generar el catálogo. Comprueba la conexión."); }
       render(false); break; }
     case "catlang": setCatLang(a.dataset.v); render(false); buzz(); break;
+    case "webshare": { const ts = (S.cats || CAT_DEFAULT).tarifas;
+      if (ts.length === 1) { webDo("share", ts[0]); break; }
+      openSheet("Compartir la web en vídeo", `<p class="sub" style="margin:0 0 6px;line-height:1.5">Cada tarifa abre la web con su marca y sus servicios, ${catLang() === "ca" ? "en catalán" : "en castellano"}.</p>
+        ${ts.map(t => `<div class="cat-row"><div class="cat-info"><span class="cat-name">${esc(t.nombre)}</span><span class="cat-sub">${t.marca === "events" ? "Noel Events" : "Noel DJ"}</span></div>
+        <div class="row" style="gap:6px;justify-content:flex-end"><button class="btn sm ghost tap" data-act="webgo" data-m="copy" data-v="${t.id}" aria-label="Copiar enlace">${I.copy}</button><button class="btn sm ghost tap" data-act="webgo" data-m="open" data-v="${t.id}" aria-label="Abrir">${I.right}</button><button class="btn sm primary tap" data-act="webgo" data-m="share" data-v="${t.id}">${I.wa}</button></div></div>`).join("")}`,
+        `<button class="btn ghost tap" data-act="close">Cerrar</button>`); break; }
+    case "webgo": { const t = (S.cats || CAT_DEFAULT).tarifas.find(x => x.id === a.dataset.v); if (t) webDo(a.dataset.m, t); break; }
     case "catedit": openCatEditor(); break;
     case "catadd": { const c = collectCat(); c.tarifas.push({ id: uid(), nombre: "Tarifa nueva", precios: { ...CAT_BASE } }); rerenderCat(c); } break;
     case "catdup": { const c = collectCat(); const o = c.tarifas[+a.dataset.i]; c.tarifas.splice(+a.dataset.i + 1, 0, { id: uid(), nombre: o.nombre + " (copia)", marca: o.marca || "dj", servicios: { ...SERV_ALL, ...(o.servicios || {}) }, precios: { ...o.precios } }); rerenderCat(c); } break;
