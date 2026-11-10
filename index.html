@@ -1449,12 +1449,7 @@ document.addEventListener("click", async ev => {
       catch(err){ console.log("[NoelEvents] catálogo", err); toast("No se ha podido generar el catálogo. Comprueba la conexión."); }
       render(false); break; }
     case "catlang": setCatLang(a.dataset.v); render(false); buzz(); break;
-    case "webshare": { const ts = (S.cats || CAT_DEFAULT).tarifas;
-      if (ts.length === 1) { webDo("share", ts[0]); break; }
-      openSheet("Compartir la web en vídeo", `<p class="sub" style="margin:0 0 6px;line-height:1.5">Cada tarifa abre la web con su marca y sus servicios, ${catLang() === "ca" ? "en catalán" : "en castellano"}.</p>
-        ${ts.map(t => `<div class="cat-row"><div class="cat-info"><span class="cat-name">${esc(t.nombre)}</span><span class="cat-sub">${t.marca === "events" ? "Noel Events" : "Noel DJ"}</span></div>
-        <div class="row" style="gap:6px;justify-content:flex-end"><button class="btn sm ghost tap" data-act="webgo" data-m="copy" data-v="${t.id}" aria-label="Copiar enlace">${I.copy}</button><button class="btn sm ghost tap" data-act="webgo" data-m="open" data-v="${t.id}" aria-label="Abrir">${I.right}</button><button class="btn sm primary tap" data-act="webgo" data-m="share" data-v="${t.id}">${I.wa}</button></div></div>`).join("")}`,
-        `<button class="btn ghost tap" data-act="close">Cerrar</button>`); break; }
+    case "webshare": webDo("share", { marca: "dj" }); break;
     case "webgo": { const t = (S.cats || CAT_DEFAULT).tarifas.find(x => x.id === a.dataset.v); if (t) webDo(a.dataset.m, t); break; }
     case "catedit": openCatEditor(); break;
     case "catadd": { const c = collectCat(); c.tarifas.push({ id: uid(), nombre: "Tarifa nueva", precios: { ...CAT_BASE } }); rerenderCat(c); } break;
