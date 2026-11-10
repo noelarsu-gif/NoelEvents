@@ -641,7 +641,7 @@ function openCatEditor(){ S.catEdit = clone(S.cats || CAT_DEFAULT); S.sheetMode 
 function rerenderCat(c){ S.catEdit = c; const sb = $("#sheetBody"), st = sb.scrollTop; sb.innerHTML = catEditorBody(c); sb.scrollTop = st; }
 
 /* ============ Imágenes de marca ============ */
-const IMG = { hero: "./img/hero.jpg", dj: "./img/dj.jpg" };
+const IMG = { hero: "./img/hero.jpg", heroCa: "./img/hero-ca.jpg", dj: "./img/dj.jpg" };
 
 /* ============ Iconos ============ */
 const I = {
@@ -1289,7 +1289,7 @@ function svcInfo(name, lang){
   if (/humo|fum/.test(n)) out.push(lang==="ca" ? ["Fum de colors","Les fotos que tothom voldrà compartir.",["Fum aeri de colors","4 colors a escollir","Sortida de la cerimònia o sessió de fotos"]] : ["Humo de colores","Las fotos que todos querrán compartir.",["Humo aéreo de colores","4 colores a elegir","Salida de la ceremonia o sesión de fotos"]]);
   return out;
 }
-function trName(name, lang){ if (lang !== "ca") return name; return name.replace(/fuegos fríos/gi,"focs freds").replace(/sin fondo/gi,"sense fons").replace(/solo fiesta/gi,"només festa").replace(/fiesta/gi,"festa").replace(/desplazamiento/gi,"desplaçament").replace(/ \+ /g," + "); }
+function trName(name, lang){ if (lang !== "ca") return name; return name.replace(/pack completo/gi,"Pack complet").replace(/humo de colores/gi,"fum de colors").replace(/fuegos? fríos?/gi,"focs freds").replace(/horas extra/gi,"hores extra").replace(/hora extra/gi,"hora extra").replace(/ceremonia/gi,"cerimònia").replace(/aperitivo/gi,"aperitiu").replace(/cóctel/gi,"còctel").replace(/banquete/gi,"banquet").replace(/(\d)\s*horas/gi,"$1 hores").replace(/sin fondo/gi,"sense fons").replace(/solo fiesta/gi,"només festa").replace(/fiesta/gi,"festa").replace(/desplazamiento/gi,"desplaçament").replace(/ \+ /g," + ").replace(/^./, c => c.toUpperCase()); }
 function reservaHTML(e, lang, cond){
   const T = TX[lang], c = S.cfg.contacto||{}, d = parseD(e.fecha), h = e.horario||{};
   const parts = (e.novios||"").split(/\s+(?:i|y|&)\s+/i);
@@ -1304,7 +1304,7 @@ function reservaHTML(e, lang, cond){
   const page = (bg, inner, extra) => `<div class="pp" style="width:794px;height:1123px;box-sizing:border-box;background:${bg};color:#F3EEE4;font-family:Montserrat,sans-serif;display:flex;flex-direction:column;overflow:hidden;${extra||""}">${inner}</div>`;
   const lab = t => `<p style="margin:0;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#9C958A">${t}</p>`;
   const p1 = page("#060302", `
-    ${IMG.hero ? `<img src="${IMG.hero}" data-pos="center 100%" style="width:794px;height:auto;display:block" alt="">` : `<div style="height:${big?200:240}px;background:#151310"></div>`}
+    ${IMG.hero ? `<img src="${lang === "ca" ? IMG.heroCa : IMG.hero}" data-pos="center 100%" style="width:794px;height:auto;display:block" alt="">` : `<div style="height:${big?200:240}px;background:#151310"></div>`}
     <div style="flex:1;display:flex;flex-direction:column;gap:${big?18:24}px;padding:30px 72px 40px">
       <div style="display:flex;flex-direction:column;gap:12px"><p style="margin:0;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#C9A961;font-weight:600">${T.conf}</p>
         <h1 style="margin:0;font-family:'Cormorant Garamond',serif;font-weight:400;font-size:${(e.novios||"").length>24?52:64}px;line-height:1">${names}</h1></div>
