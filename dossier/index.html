@@ -134,7 +134,12 @@ h1 em,h2 em{font-style:italic;color:var(--gold2);font-weight:300}
   .tx.top-t{top:calc(84px + env(safe-area-inset-top,0px))}
 }
 @media (max-width:420px){ .chap button{padding:9px 10px;letter-spacing:.1em} }
-@media (prefers-reduced-motion:reduce){ .cue i{animation:none} .curtain{transition:none} }
+/* aviso de scroll sutil durante todo el recorrido (aparece cuando dejas de deslizar) */
+.cue2{position:fixed;z-index:29;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px);display:flex;flex-direction:column;align-items:center;gap:8px;
+  font-size:8.5px;letter-spacing:.36em;text-transform:uppercase;color:var(--ink2);opacity:0;pointer-events:none;transition:opacity .7s ease,transform .7s cubic-bezier(.22,.8,.24,1);text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.cue2.on{opacity:.72;transform:translate(-50%,0)}
+.cue2 i{width:1px;height:30px;background:linear-gradient(var(--gold),transparent);animation:cue 2.2s cubic-bezier(.6,0,.3,1) infinite;transform-origin:top}
+@media (prefers-reduced-motion:reduce){ .cue i,.cue2 i{animation:none} .curtain{transition:none} }
 </style>
 </head>
 <body>
@@ -253,6 +258,7 @@ h1 em,h2 em{font-style:italic;color:var(--gold2);font-weight:300}
   </div>
 </section>
 
+<div class="cue2" id="cue2" aria-hidden="true"><i></i><span data-t="cue2"></span></div>
 <nav class="chap" id="chap" aria-label="Capítulos">
   <button type="button" data-go="dj" data-t="nDJ"></button>
   <button type="button" data-go="foto" data-t="nFo"></button>
@@ -270,7 +276,7 @@ es:{
   heroEye:"Bodas · Lleida y Cataluña",
   heroH:"Noches que<br><em>se recuerdan</em>",
   heroP:"Música, fotomatón, plataforma 360 y efectos especiales para la fiesta de vuestra vida.",
-  cue:"Desliza",
+  cue:"Desliza", cue2:"Sigue deslizando",
   manif:"No ponemos música. Creamos *la noche* que vuestros invitados recordarán durante años: sonido impecable, luz que acompaña cada momento y detalles que convierten una fiesta en *una historia.*",
   djEye:"Música", djH:"El ritmo lo marca<br><em>vuestra pista</em>",
   djP:"Leemos a los invitados en tiempo real. Cada canción llega en el momento justo, del primer baile al último tema.",
@@ -302,7 +308,7 @@ ca:{
   heroEye:"Casaments · Lleida i Catalunya",
   heroH:"Nits que<br><em>es recorden</em>",
   heroP:"Música, fotomatón, plataforma 360 i efectes especials per a la festa de la vostra vida.",
-  cue:"Llisca",
+  cue:"Llisca", cue2:"Continua lliscant",
   manif:"No posem música. Creem *la nit* que els vostres convidats recordaran durant anys: so impecable, llum que acompanya cada moment i detalls que converteixen una festa en *una història.*",
   djEye:"Música", djH:"El ritme el marca<br><em>la vostra pista</em>",
   djP:"Llegim els convidats en temps real. Cada cançó arriba al moment just, del primer ball a l’últim tema.",
@@ -617,7 +623,11 @@ function frame(){
   // precarga de la siguiente escena
   [["dj","#L-dj"],["foto","#L-foto"],["r360","#L-360"],["fx","#L-fx"]].forEach(([k,sel]) => { if (!SC[k].off && s > SC[k].a - 1.6) warm(sel); });
 }
-const req = () => { if (!ticking){ ticking = true; requestAnimationFrame(frame); } };
+// Aviso de scroll: se esconde mientras deslizas y vuelve, muy sutil, cuando paras
+const cue2 = $("#cue2"); let idleT;
+const cueOk = () => lastS > SC.hero.b - .5 && lastS < END - .15;
+function cueIdle(){ cue2.classList.remove("on"); clearTimeout(idleT); idleT = setTimeout(() => cue2.classList.toggle("on", cueOk()), 1600); }
+const req = () => { cueIdle(); if (!ticking){ ticking = true; requestAnimationFrame(frame); } };
 addEventListener("scroll", req, {passive:true});
 let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { const s = lastS; layout(); scrollTo(0, track.offsetTop + s*H); lastS=-1; frame(); }, 120); });
 
