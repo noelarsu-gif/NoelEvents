@@ -333,7 +333,7 @@ es:{
   heroHEv:"Momentos que<br><em>se recuerdan</em>", heroPEv:"para el día más especial.", y:"y",
   sv:{dj:"DJ",foto:"fotomatón","360":"plataforma 360",fx:"efectos especiales"},
   nDJ:"Música", nFo:"Fotomatón", n36:"360", nFx:"Efectos",
-  opEye:"Opiniones", opH:"Lo que dicen<br><em>las parejas</em>", opFoot:"Opiniones reales publicadas en Bodas.net", boda:"Boda del"
+  opEye:"Opiniones", opH:"Lo que dicen<br><em>las parejas</em>", opFoot:"Opiniones reales de nuestras parejas", boda:"Boda del"
 },
 ca:{
   heroEye:"Casaments · Lleida i Catalunya",
@@ -366,37 +366,37 @@ ca:{
   heroHEv:"Moments que<br><em>es recorden</em>", heroPEv:"per al dia més especial.", y:"i",
   sv:{dj:"DJ",foto:"fotomatón","360":"plataforma 360",fx:"efectes especials"},
   nDJ:"Música", nFo:"Fotomatón", n36:"360", nFx:"Efectes",
-  opEye:"Opinions", opH:"El que diuen<br><em>les parelles</em>", opFoot:"Opinions reals publicades a Bodas.net", boda:"Casament del"
+  opEye:"Opinions", opH:"El que diuen<br><em>les parelles</em>", opFoot:"Opinions reals de les nostres parelles", boda:"Casament del"
 }};
 /* ===== Opiniones reales (Bodas.net). m: "dj" = solo con DJ · "ev" = solo sin DJ · "all" = siempre ===== */
 const OPS = [
-  { n:"Nerea", d:"2023-06-24", m:"dj", tag:{es:"Pack completo",ca:"Pack complet"},
-    es:"Cogimos el pack completo, DJ Noel + Fotomatón + 360°, salió todo perfecto y nuestra familia se lo pasó genial. ¡Son grandes profesionales!",
-    ca:"Vam agafar el pack complet, DJ Noel + Fotomatón + 360°, va sortir tot perfecte i la nostra família s’ho va passar genial. Són grans professionals!" },
+  { n:"Alba i Jordi", d:"2026-09-05", m:"dj", tag:{es:"DJ · Fuegos fríos",ca:"DJ · Focs freds"},
+    es:"No solo pusiste música: conseguiste crear el ambiente perfecto y que todos disfrutaran, bailaran y vivieran cada momento con nosotros. La pista no paró. ¡Los fuegos fueron ESPECTACULARES!",
+    ca:"No només vas posar música: vas aconseguir crear l’ambient perfecte i fer que tothom gaudís, ballés i visqués cada moment amb nosaltres. La pista no va parar. Els focs van ser ESPECTACULARS!" },
+  { n:"Patricia", d:"2024-04-27", m:"all",
+    es:"Desde el primer momento fue de 10. Estuvo muy profesional y atento con nosotros y nuestros invitados. ¡El resultado fue fantástico!",
+    ca:"Des del primer moment va ser de 10. Va estar molt professional i atent amb nosaltres i els nostres convidats. El resultat va ser fantàstic!" },
+  { n:"Krístel", d:"2023-09-09", m:"dj",
+    es:"Todas las canciones, a su justo tiempo. ¡Una fiesta increíble! Nos hicieron pasar una noche genial.",
+    ca:"Totes les cançons, al moment just. Una festa increïble! Ens van fer passar una nit genial." },
   { n:"Krístel", d:"2023-09-09", m:"ev", tag:{es:"Fotomatón · 360",ca:"Fotomatón · 360"},
     es:"Unos profesionales de pies a cabeza. Tanto los invitados como nosotras quedamos encantados con el fotomatón y la plataforma 360.",
     ca:"Uns professionals de cap a peus. Tant els convidats com nosaltres vam quedar encantats amb el fotomatón i la plataforma 360." },
   { n:"Mireya", d:"2023-09-09", m:"all",
     es:"Tanto él como su mujer, muy atentos y agradables. Si lo hubiese sabido, les dejo un sitio en nuestra mesa de invitados.",
     ca:"Tant ell com la seva dona, molt atents i agradables. Si ho hagués sabut, els hauria deixat un lloc a la nostra taula de convidats." },
-  { n:"Krístel", d:"2023-09-09", m:"dj",
-    es:"Todas las canciones, a su justo tiempo. ¡Una fiesta increíble! Nos hicieron pasar una noche genial.",
-    ca:"Totes les cançons, al moment just. Una festa increïble! Ens van fer passar una nit genial." },
-  { n:"Bea", d:"2017-05-06", m:"dj",
-    es:"Les pedimos un remix para el baile y en nada de tiempo lo teníamos hecho. Sin ellos no hubiera sido perfecto.",
-    ca:"Els vam demanar un remix per al ball i en un no res el teníem fet. Sense ells no hauria estat perfecte." },
-  { n:"Patricia", d:"2024-04-27", m:"all",
-    es:"Desde el primer momento fue de 10. Estuvo muy profesional y atento con nosotros y nuestros invitados. ¡El resultado fue fantástico!",
-    ca:"Des del primer moment va ser de 10. Va estar molt professional i atent amb nosaltres i els nostres convidats. El resultat va ser fantàstic!" },
-  { n:"Escarlet", d:"2017-05-27", m:"ev",
-    es:"Gracias a él y a su profesionalidad, nuestro día fue inolvidable.",
-    ca:"Gràcies a ell i a la seva professionalitat, el nostre dia va ser inoblidable." },
-  { n:"Jose", d:"2016-08-20", m:"all",
-    es:"Se adapta a todos los lugares y momentos. Seriedad, saber estar, enrollado… un crack.",
-    ca:"S’adapta a tots els llocs i moments. Serietat, saber estar, enrotllat… un crack." },
   { n:"Rafael", d:"2023-08-26", m:"all",
     es:"Un trato magnífico incluso a última hora, cuando la gente iba un poco más alegre. ¡Jajaja, lo recomiendo 100%!",
-    ca:"Un tracte magnífic fins i tot a última hora, quan la gent anava una mica més alegre. Jajaja, el recomano al 100%!" }
+    ca:"Un tracte magnífic fins i tot a última hora, quan la gent anava una mica més alegre. Jajaja, el recomano al 100%!" },
+  { n:"Núria", d:"2023-07-11", m:"all",
+    es:"Entendió a la perfección lo que queríamos y lo acertó totalmente. Sabe perfectamente lo que hacer en cada momento. Un acierto total.",
+    ca:"Va entendre a la perfecció el que volíem i ho va encertar totalment. Sap perfectament què fer a cada moment. Un encert total." },
+  { n:"Nerea", d:"2023-06-24", m:"dj", tag:{es:"Pack completo",ca:"Pack complet"},
+    es:"Cogimos el pack completo, DJ Noel + Fotomatón + 360°, salió todo perfecto y nuestra familia se lo pasó genial. ¡Son grandes profesionales!",
+    ca:"Vam agafar el pack complet, DJ Noel + Fotomatón + 360°, va sortir tot perfecte i la nostra família s’ho va passar genial. Són grans professionals!" },
+  { n:"Eva", d:"2023-06-10", m:"dj",
+    es:"¡Animó mucho a los invitados! Le dijimos lo que queríamos y estuvo fantástico. ¡Muy agradecidos!",
+    ca:"Va animar molt els convidats! Li vam dir el que volíem i va estar fantàstic. Molt agraïts!" }
 ];
 const MES_ES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 const MES_CA = ["gener","febrer","març","abril","maig","juny","juliol","agost","setembre","octubre","novembre","desembre"];
