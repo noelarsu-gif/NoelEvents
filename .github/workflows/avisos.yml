@@ -1,0 +1,35 @@
+name: Avisos de eventos
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"    # lunes ~9:00 (Madrid, invierno): resumen de la semana
+    - cron: "0 17 * * *"   # cada día ~18:00 (Madrid, invierno): recordatorio del día siguiente
+    - cron: "*/15 * * * *" # cada 15 min: avisos de seguridad (sesiones bloqueadas)
+  workflow_dispatch:
+    inputs:
+      modo:
+        description: "semana, manana, seguridad, calendario o prueba"
+        required: true
+        default: "prueba"
+
+jobs:
+  avisar:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: avisos
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - name: Enviar avisos
+        run: node enviar.mjs
+        env:
+          MODO: ${{ github.event.inputs.modo || (github.event.schedule == '0 8 * * 1' && 'semana') || (github.event.schedule == '0 17 * * *' && 'manana') || 'seguridad' }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          CALENDAR_ID: ${{ secrets.CALENDAR_ID }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          APP_URL: https://noelarsu-gif.github.io/NoelEvents/
