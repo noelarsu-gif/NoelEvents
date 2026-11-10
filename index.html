@@ -362,6 +362,7 @@ nav.tabs .fab svg{width:24px;height:24px}
   </div>
 </div>
 
+<div id="cover" aria-hidden="true" style="position:fixed;inset:0;z-index:97;background:var(--bg)"></div>
 <div id="splash" role="presentation">
   <div class="s1">NoelEvents</div>
   <div class="s2" id="splashName">Bienvenido, <i>Noel</i></div>
@@ -1582,7 +1583,7 @@ const lMsg = (t, err) => { const m = $("#lMsg"); m.textContent = t || ""; m.clas
 const AUTH_ERR = { "auth/invalid-credential":"Correo o contraseña incorrectos.", "auth/wrong-password":"Contraseña incorrecta.", "auth/user-not-found":"No hay ninguna cuenta con ese correo. Pulsa “Crear cuenta”.", "auth/email-already-in-use":"Ese correo ya tiene cuenta. Pulsa “Entrar”.", "auth/weak-password":"La contraseña debe tener al menos 6 caracteres.", "auth/invalid-email":"Ese correo no es válido.", "auth/popup-closed-by-user":"Has cerrado la ventana de Google.", "auth/too-many-requests":"Demasiados intentos. Espera unos minutos.", "auth/network-request-failed":"Sin conexión. Conéctate a internet para entrar la primera vez.", "auth/unauthorized-domain":"Este dominio no está autorizado en Firebase." };
 const aerr = e => AUTH_ERR[e && e.code] || "No se ha podido entrar. Inténtalo de nuevo.";
 const okEmail = async email => !!(await cuentaDe(email));
-function showLogin(mode){ $("#login").hidden = false; $("#loginMain").hidden = mode === "verify"; $("#loginVerify").hidden = mode !== "verify"; }
+function showLogin(mode){ uncover(); if (lockState) { lockState = null; $("#lock").hidden = true; } $("#login").hidden = false; $("#loginMain").hidden = mode === "verify"; $("#loginVerify").hidden = mode !== "verify"; }
 $("#gLogin").addEventListener("click", async () => {
   lMsg(""); const p = new GoogleAuthProvider(); p.setCustomParameters({ prompt: "select_account" });
   const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
@@ -1602,11 +1603,14 @@ $("#vResend").addEventListener("click", async () => { try { await sendEmailVerif
 $("#vDone").addEventListener("click", async () => { await auth.currentUser.reload(); if (auth.currentUser.emailVerified) location.reload(); else lMsg("Todavía no consta como verificado. Abre el enlace del correo.", true); });
 $("#vOut").addEventListener("click", async () => { await signOut(auth); lMsg(""); showLogin("main"); });
 
+// Pantalla de fondo mientras arranca: así nunca se ve el panel vacío antes del PIN
+function uncover(){ const c = $("#cover"); if (c) c.hidden = true; }
+let pendingGo = null, unlocked = false;
 function splash(user){
   const em = (user.email||"").toLowerCase(), first = (user.displayName||"").split(" ")[0];
   const sg = saludo(em, false);
   $("#splashName").innerHTML = sg.titulo; $("#splashSub").textContent = sg.frase;
-  const sp = $("#splash"); sp.hidden = false; sp.classList.remove("out");
+  const sp = $("#splash"); sp.hidden = false; sp.classList.remove("out"); setTimeout(uncover, 60);
   const hide = () => sp.classList.add("out");
   setTimeout(hide, 1900); sp.addEventListener("click", hide);
   setTimeout(() => { sp.hidden = true; }, 2700);
@@ -1811,9 +1815,12 @@ async function boot(){
   $("#splash").hidden = true;
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(()=>{});
   bioAvailable().then(v => { S.bioOk = v; });
-  if (location.hash === "#demo") { startDemo(); return; }
+  if (location.hash === "#demo") { uncover(); startDemo(); return; }
+  setTimeout(uncover, 12000); // por si la conexión tarda muchísimo
+  // Con bloqueo activado, el panel del PIN / huella sale ya desde el primer instante
+  if (LK.get()) showLock("unlock", () => { unlocked = true; const g = pendingGo; pendingGo = null; g && g(); });
   try { const m = sessionStorage.getItem("ne_motivo"); if (m) { sessionStorage.removeItem("ne_motivo"); lMsg(m, true); } } catch(_){}
-  window.addEventListener("hashchange", () => { if (location.hash === "#demo" && !started) startDemo(); });
+  window.addEventListener("hashchange", () => { if (location.hash === "#demo" && !started) { uncover(); startDemo(); } });
   await setPersistence(auth, browserLocalPersistence).catch(()=>{});
   getRedirectResult(auth).catch(e => lMsg(aerr(e), true));
   onAuthStateChanged(auth, async user => {
@@ -1825,7 +1832,7 @@ async function boot(){
     if (started) return; started = true;
     S.db = DB;
     const go = () => { splash(user); render(true); startData(); };
-    if (LK.get()) showLock("unlock", go); else go();
+    if (!LK.get() || unlocked) go(); else if (lockState) pendingGo = go; else showLock("unlock", go);
     write(S.db.doc("usuarios/" + user.uid).set({ email: user.email.toLowerCase(), nombre: S.me.nombre, ultimoAcceso: new Date().toISOString() }), "registrar la cuenta");
   });
 }
