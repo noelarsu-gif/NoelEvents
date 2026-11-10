@@ -4,11 +4,12 @@ on:
   schedule:
     - cron: "0 8 * * 1"    # lunes ~9:00 (Madrid, invierno): resumen de la semana
     - cron: "0 17 * * *"   # cada día ~18:00 (Madrid, invierno): recordatorio del día siguiente
+    - cron: "30 7 * * *"   # cada día ~8:30 (Madrid, invierno): tareas pendientes y álbum
     - cron: "*/15 * * * *" # cada 15 min: avisos de seguridad (sesiones bloqueadas)
   workflow_dispatch:
     inputs:
       modo:
-        description: "semana, manana, seguridad, calendario o prueba"
+        description: "semana, manana, tareas, seguridad, calendario o prueba"
         required: true
         default: "prueba"
 
@@ -27,7 +28,7 @@ jobs:
       - name: Enviar avisos
         run: node enviar.mjs
         env:
-          MODO: ${{ github.event.inputs.modo || (github.event.schedule == '0 8 * * 1' && 'semana') || (github.event.schedule == '0 17 * * *' && 'manana') || 'seguridad' }}
+          MODO: ${{ github.event.inputs.modo || (github.event.schedule == '0 8 * * 1' && 'semana') || (github.event.schedule == '0 17 * * *' && 'manana') || (github.event.schedule == '30 7 * * *' && 'tareas') || 'seguridad' }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           CALENDAR_ID: ${{ secrets.CALENDAR_ID }}

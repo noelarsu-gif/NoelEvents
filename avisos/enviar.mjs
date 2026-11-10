@@ -1,6 +1,7 @@
 // NoelEvents · avisos automáticos (lo ejecuta GitHub Actions)
 // MODO=semana  -> resumen de los eventos de lunes a domingo
 // MODO=manana  -> recordatorio de los eventos de mañana
+// MODO=tareas  -> cada mañana: tareas sin hacer de la semana antes del evento + recordatorio del álbum
 // MODO=prueba  -> envía el resumen de los próximos eventos aunque no sean de esta semana
 import admin from "firebase-admin";
 import nodemailer from "nodemailer";
@@ -40,6 +41,15 @@ async function avisarNuevos(){
   const EMO = { boda: ["💍", "🎉", "🥂", "💃", "✨"], fiesta: ["🪩", "🎈", "🔥", "🕺", "🎶"], empresa: ["🥂", "🎤", "✨", "🎶"], "cumpleaños": ["🎂", "🎈", "🎉", "🥳"], otro: ["🎧", "🎶", "✨"] };
   const TIT = [
     t => `${t[0]} ¡Otro evento cerrado! ${t[1]}`,
+    t => `${t[0]} ¡Boom! Fecha reservada ${t[1]}`,
+    t => `${t[0]} ¡Una más para la colección! ${t[1]}`,
+    t => `${t[0]} ¡Sí, quiero… otra reserva! ${t[1]}`,
+    t => `${t[0]} ¡Se viene fiestón! ${t[1]}`,
+    t => `${t[0]} ¡Otra pista de baile que llenar! ${t[1]}`,
+    t => `${t[0]} ¡Esto no para! ${t[1]}`,
+    t => `${t[0]} ¡Reserva en el bote! ${t[1]}`,
+    t => `${t[0]} ¡Hoy se celebra! Nueva fecha ${t[1]}`,
+    t => `${t[0]} ¡Más madera! Otra boda cerrada ${t[1]}`,
     t => `${t[0]} ¡Toma ya! Nueva reserva ${t[1]}`,
     t => `${t[0]} ¡La agenda echa humo! ${t[1]}`,
     t => `${t[0]} ¡Chin chin, cerramos otra! ${t[1]}`,
@@ -119,13 +129,133 @@ async function syncCalendario(){
 }
 if (MODO === "calendario") { await syncCalendario(); process.exit(0); }
 
+/* ---------- Envío común ---------- */
+const mailer = process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD ? nodemailer.createTransport({ service: "gmail", auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD.replace(/\s/g, "") } }) : null;
+let _tokens = null;
+async function push(title, body, url, tag){
+  if (!_tokens) _tokens = (await db.collection("push").get()).docs.map(d => d.id);
+  if (!_tokens.length) { console.log("Push: ningún móvil activado."); return; }
+  const r = await admin.messaging().sendEachForMulticast({ tokens: _tokens, webpush: { notification: { title, body, icon: APP + "icons/icon-192.png", badge: APP + "icons/icon-192.png", ...(tag ? { tag } : {}) }, fcmOptions: { link: url || APP } }, data: { url: url || APP } });
+  console.log(`Push "${title}": ${r.successCount} enviadas, ${r.failureCount} fallidas`);
+  await Promise.all(r.responses.map((x, i) => !x.success && /registration-token-not-registered|invalid-argument/.test(x.error?.code || "") ? db.collection("push").doc(_tokens[i]).delete() : null));
+}
+const linkEv = id => APP + "#evento-" + encodeURIComponent(id);
+const faltan = n => n === 0 ? "hoy" : n === 1 ? "mañana" : `en ${n} días`;
+const diasHasta = f => Math.round((new Date(f + "T12:00:00Z") - new Date(hoyMadrid() + "T12:00:00Z")) / 864e5);
+
+/* ---------- Fotomatón → tarea "Comprar el álbum" (una vez por evento) ---------- */
+const ALBUM_TXT = "Comprar el álbum del fotomatón";
+const llevaFoto = e => (e.servicios || []).some(s => /fotomat|photo|complet/i.test(s.nombre || ""));
+const esAlbum = t => /[áa]lbum/i.test(t.texto || "");
+async function albumTareas(){
+  const hoy = hoyMadrid(); let n = 0;
+  for (const d of (await db.collection("events").where("fecha", ">=", hoy).get()).docs) {
+    const e = d.data(); if (e.albumAuto || e.estado !== "reservada" || !llevaFoto(e)) continue;
+    const tareas = e.tareas || []; if (!tareas.some(esAlbum)) tareas.push({ texto: ALBUM_TXT, hecha: false });
+    await d.ref.update({ tareas, albumAuto: true }); n++;
+  }
+  if (n) console.log(`Álbum: tarea añadida a ${n} evento(s).`);
+}
+
+/* ---------- Textos simpáticos (muchos, para que nunca se repitan) ---------- */
+const T_TAREAS = [
+  (e, n) => `📝 ${e.novios}: te queda${n > 1 ? "n" : ""} ${n} cosita${n > 1 ? "s" : ""}`,
+  (e, n, d) => `⏳ ${e.novios} es ${faltan(d)} y hay deberes`,
+  (e) => `🧠 Recordatorio con cariño: ${e.novios}`,
+  (e, n, d) => `🎯 Cuenta atrás ${e.novios}: ${d === 0 ? "¡es hoy!" : d === 1 ? "¡mañana!" : d + " días"}`,
+  (e) => `✅ Que no se escape nada · ${e.novios}`,
+  (e) => `🕵️ He encontrado tareas sueltas de ${e.novios}`,
+  (e, n) => `📋 ${n > 1 ? n + " tareas" : "Una tarea"} esperando por ti · ${e.novios}`,
+  (e) => `☕ Café y a tachar cosas: ${e.novios}`,
+  (e, n, d) => `🚦 ${e.novios} ${faltan(d)}: semáforo en ámbar`,
+  (e) => `🎧 Antes de poner música, esto: ${e.novios}`,
+  (e) => `💪 Un empujón y lo tienes · ${e.novios}`,
+  (e, n, d) => `📅 Faltan ${d} días para ${e.novios} y la lista no está a cero`,
+  (e) => `🔔 Toc, toc… tareas de ${e.novios}`,
+  (e) => `🧩 Te faltan piezas del puzzle de ${e.novios}`,
+  (e) => `🪩 Para que la fiesta de ${e.novios} salga redonda…`,
+  (e, n) => `✍️ ${n} ${n > 1 ? "pendientes" : "pendiente"} en ${e.novios}. ¿Lo tachamos hoy?`,
+  (e) => `🚀 Modo productivo: ${e.novios}`,
+  (e) => `🙈 No me hagas repetirlo mañana… ${e.novios}`,
+  (e, n, d) => `⏰ ${d <= 1 ? "¡Última llamada!" : "Ojo al dato"} · ${e.novios}`,
+  (e) => `🎁 Pequeños detalles, grandes bodas · ${e.novios}`
+];
+const T_TAREAS_PIE = ["Toca para abrir el evento y marcarla como hecha ✔️", "Márcala en la app y te dejo en paz 😇", "Cuando esté hecha, un toque en la casilla y listo.", "Mañana te lo vuelvo a recordar si sigue pendiente 😉", "Tachar cosas sienta de maravilla ✨"];
+const T_ALBUM = [
+  e => `📖 ¡Álbum a la vista! ${e.novios} en una semana`,
+  e => `🛒 Hora de comprar el álbum de ${e.novios}`,
+  e => `📸 Sin álbum no hay firmas · ${e.novios}`,
+  e => `✍️ Que los invitados de ${e.novios} tengan dónde firmar`,
+  e => `📚 Misión álbum: ${e.novios}`,
+  e => `🎀 El álbum de ${e.novios} te está esperando en la tienda`,
+  e => `🧾 Lista de la compra: un álbum para ${e.novios}`,
+  e => `💌 Recuerdos con firma: compra el álbum de ${e.novios}`,
+  e => `🏃 Corre, que el álbum de ${e.novios} no se compra solo`,
+  e => `📷 Fotomatón listo, ¿y el álbum? · ${e.novios}`,
+  e => `🥂 Una semana para ${e.novios}: falta el álbum`,
+  e => `⭐ Detallazo pendiente: el álbum de ${e.novios}`
+];
+const T_ALBUM_INTRO = [
+  "Dentro de una semana hay fotomatón y los invitados van a querer pegar fotos y dejar mensajes. Solo falta un detalle:",
+  "Te lo apunto antes de que se cuele entre canción y canción:",
+  "Lo bonito del fotomatón es lo que queda después. Y para eso hace falta…",
+  "Repaso rápido de material para la boda de la semana que viene:",
+  "Un aviso de tu secretaria favorita 😇:",
+  "Para que el día de la boda no toque improvisar:"
+];
+const T_ALBUM_CIERRE = ["¡Que se llene de firmas! ✍️", "Recuerdos para toda la vida 📖", "Un detalle que los novios no olvidan ✨", "¡A por ese álbum! 🛒", "Fotos, risas y dedicatorias 📸"];
+
+/* ---------- Modo tareas (cada mañana) ---------- */
+if (MODO === "tareas") {
+  await albumTareas();
+  const hoy = hoyMadrid(), hasta = sumar(hoy, 7);
+  const docs = (await db.collection("events").where("fecha", ">=", hoy).where("fecha", "<=", hasta).get()).docs.filter(d => d.data().estado === "reservada");
+  console.log(`Tareas: ${docs.length} evento(s) en los próximos 7 días.`);
+  for (const d of docs) {
+    const e = d.data(), dd = diasHasta(e.fecha), url = linkEv(d.id);
+    const pend = (e.tareas || []).filter(t => !t.hecha && String(t.texto || "").trim());
+    const album = pend.find(esAlbum);
+    let resto = pend;
+    // Álbum: aviso especial (push + email) la primera vez que entra en la última semana
+    if (album && !e.albumMail) {
+      const tit = pick(T_ALBUM)(e), intro = pick(T_ALBUM_INTRO), cierre = pick(T_ALBUM_CIERRE);
+      await push(tit, `${album.texto} · ${fecha(e.fecha)}${e.lugar ? " · " + e.lugar : ""}`, url, "album-" + d.id);
+      if (mailer && TO.length) {
+        await mailer.sendMail({ from: `"NoelEvents" <${process.env.GMAIL_USER}>`, to: TO.join(","), subject: tit,
+          text: `${tit}\n\n${intro}\n\n📖 ${album.texto}\n${e.novios} · ${fecha(e.fecha)}${e.lugar ? " · " + e.lugar : ""}\n\n${cierre}\n${url}`,
+          html: `<div style="background:#0B0A08;color:#F3EEE4;font-family:Helvetica,Arial,sans-serif;padding:28px 18px"><div style="max-width:560px;margin:0 auto">
+            <div style="font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#C9A961;font-weight:bold">Noel DJ · Music &amp; Events</div>
+            <div style="font-family:Georgia,serif;font-size:28px;line-height:1.2;margin:10px 0 14px">${esc(tit)}</div>
+            <p style="font-size:15px;line-height:1.6;color:#D8D2C6">${esc(intro)}</p>
+            <div style="border:1px solid #3A342A;padding:18px 20px;margin:16px 0">
+              <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#C9A961;font-weight:bold">${esc(fecha(e.fecha))} · ${faltan(dd)}</div>
+              <div style="font-family:Georgia,serif;font-size:24px;margin:6px 0 10px">${esc(e.novios)}</div>
+              <div style="font-size:15px;line-height:1.7">📖 ${esc(album.texto)}</div>
+              ${e.lugar ? `<div style="font-size:14px;line-height:1.7;color:#B9B2A6">📍 ${esc(e.lugar)}</div>` : ""}
+            </div>
+            <div style="font-family:Georgia,serif;font-style:italic;font-size:20px;color:#C9A961;padding:6px 0 18px">${esc(cierre)}</div>
+            ${APP ? `<a href="${url}" style="display:inline-block;background:#C9A961;color:#1A140A;text-decoration:none;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:bold;padding:14px 22px">Abrir el evento</a>` : ""}
+          </div></div>` });
+        console.log(`Álbum: email enviado (${e.novios}).`);
+      }
+      await d.ref.update({ albumMail: true });
+      resto = pend.filter(t => t !== album);
+    }
+    if (!resto.length) continue;
+    const tit = pick(T_TAREAS)(e, resto.length, dd);
+    const lista = resto.slice(0, 4).map(t => "• " + t.texto).join("\n") + (resto.length > 4 ? `\n…y ${resto.length - 4} más` : "");
+    await push(tit, `${lista}\n${pick(T_TAREAS_PIE)}`, url, "tareas-" + d.id);
+  }
+  process.exit(0);
+}
+
 /* ---------- Modo seguridad: aviso de sesiones bloqueadas (y eventos nuevos) ---------- */
 if (MODO === "seguridad") {
   await avisarNuevos();
+  try { await albumTareas(); } catch (err) { console.log("Álbum: fallo", err.message); }
   try { await syncCalendario(); } catch (err) { console.log("Calendario: fallo", err.message); }
   const q = await db.collection("seguridad").where("avisado", "==", false).get();
   if (q.empty) { console.log("Seguridad: nada nuevo."); process.exit(0); }
-  const mailer = process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD ? nodemailer.createTransport({ service: "gmail", auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD.replace(/\s/g, "") } }) : null;
   const tokens = (await db.collection("push").get()).docs.map(d => d.id);
   for (const d of q.docs) {
     const x = d.data(); const hora = new Date(x.cuando || Date.now()).toLocaleString("es-ES", { timeZone: "Europe/Madrid", dateStyle: "full", timeStyle: "short" });
@@ -160,17 +290,17 @@ if (!eventos.length) { console.log("Nada que avisar."); process.exit(0); }
 /* ---------- Textos ---------- */
 const uno = eventos.length === 1, e0 = eventos[0];
 const TITULOS = {
-  semana: uno ? [`¡Semana de fiesta! 🎧 ${e0.novios} te espera`, `Esta semana hay música: ${e0.novios} 🎶`, `Se viene un buen sarao 🥂 ${e0.novios}`]
-              : [`¡Semana movida! 🎧 ${eventos.length} eventos a la vista`, `${eventos.length} fiestas esta semana 🔥 ¡a por todas!`, `Agenda llena de baile 💃 ${eventos.length} eventos`],
-  manana: [`¡Mañana toca! 🎉 ${e0.novios}`, `Calienta motores 🚐 mañana ${e0.novios}`, `Prepara la cabina 🎛️ mañana ${e0.novios}`],
+  semana: uno ? [`¡Semana de fiesta! 🎧 ${e0.novios} te espera`, `Esta semana hay música: ${e0.novios} 🎶`, `Se viene un buen sarao 🥂 ${e0.novios}`, `Esta semana se casa alguien… y tú pinchas 💍 ${e0.novios}`, `Marca el finde en rojo 🔴 ${e0.novios}`, `Lunes con planazo a la vista 🪩 ${e0.novios}`, `Semana de las buenas ✨ ${e0.novios}`, `Afina los cascos 🎧 ${e0.novios} está al caer`]
+              : [`¡Semana movida! 🎧 ${eventos.length} eventos a la vista`, `${eventos.length} fiestas esta semana 🔥 ¡a por todas!`, `Agenda llena de baile 💃 ${eventos.length} eventos`, `Doblete (o más) esta semana 🏆 ${eventos.length} eventos`, `Semana de las intensas ⚡ ${eventos.length} eventos`, `Que no pare la música 🎶 ${eventos.length} eventos esta semana`, `Furgo cargada toda la semana 🚐 ${eventos.length} eventos`],
+  manana: [`¡Mañana toca! 🎉 ${e0.novios}`, `Calienta motores 🚐 mañana ${e0.novios}`, `Prepara la cabina 🎛️ mañana ${e0.novios}`, `Cuenta atrás: 24 h para ${e0.novios} ⏳`, `Mañana se lía 🪩 ${e0.novios}`, `Carga baterías (y la furgo) 🔋 ${e0.novios}`, `Último ensayo mental 🧠 mañana ${e0.novios}`, `Mañana, a llenar la pista 💃 ${e0.novios}`, `El gran día es mañana 💍 ${e0.novios}`, `Duerme bien, que mañana hay fiesta 😴🎉 ${e0.novios}`],
   prueba: [`Prueba de avisos NoelEvents ✨`]
 };
 const INTROS = {
-  semana: ["Lunes de café y planificación ☕ Esto es lo que suena esta semana:", "Nueva semana, nuevas pistas de baile llenas. Apunta:", "Se acerca el finde y hay faena de la buena:"],
-  manana: ["Mañana alguien se casa y tú pones la banda sonora. Repaso rápido:", "Último repaso antes del gran día:", "Que no se te olvide nada, que mañana es el día:"],
+  semana: ["Lunes de café y planificación ☕ Esto es lo que suena esta semana:", "Nueva semana, nuevas pistas de baile llenas. Apunta:", "Se acerca el finde y hay faena de la buena:", "Tu secretaria te ha preparado el plan de la semana 😇:", "Para empezar la semana con todo bajo control:", "Esto es lo que te espera (y va a sonar de maravilla):", "Repaso semanal, sin sustos:"],
+  manana: ["Mañana alguien se casa y tú pones la banda sonora. Repaso rápido:", "Último repaso antes del gran día:", "Que no se te olvide nada, que mañana es el día:", "Checklist de víspera, que mañana no hay tiempo:", "Mañana te toca brillar. Aquí tienes lo importante:", "Antes de dormir, un vistazo rápido:", "Todo lo que necesitas para mañana, en un momento:"],
   prueba: ["Si estás leyendo esto, los avisos funcionan. Así se verán tus próximos eventos:"]
 };
-const CIERRES = ["¡A darlo todo! 🕺", "¡Que retumbe la pista! 🔊", "Música, maestro 🎶", "¡A hacer historia en la pista! ✨"];
+const CIERRES = ["¡A darlo todo! 🕺", "¡Que retumbe la pista! 🔊", "Música, maestro 🎶", "¡A hacer historia en la pista! ✨", "¡Que nadie se quede sentado! 💃", "Hoy por ellos, mañana por la pista 🪩", "¡A por la mejor fiesta del año! 🏆", "Que suene fuerte y bonito 🎧", "Y que vivan los novios 🥂"];
 
 const linea = e => {
   const h = e.horario || {}, pend = Math.max(0, total(e) - pagado(e)), c = e.costes || {};

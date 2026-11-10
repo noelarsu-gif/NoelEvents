@@ -759,6 +759,11 @@ function avisos(){
     if (!libre) out.push(["bad", `<b>Sin fin de semana libre</b> este mes.`, ym + "-00"]);
   });
   S.events.filter(e => e.fecha >= today0 && e.estado === "derivada" && !num((e.derivacion||{}).comision)).forEach(e => out.push(["info", `<b>${esc(e.novios)}</b> (${dia(e.fecha)}): falta fijar la comisión con ${esc((e.derivacion||{}).companero || "el compañero")}.`, e.fecha]));
+  // Tareas sin hacer (lo más cercano primero; en la última semana, en rojo)
+  act.forEach(e => { const pend = (e.tareas||[]).filter(t => !t.hecha && String(t.texto||"").trim()); if (!pend.length) return;
+    const diff = Math.ceil((parseD(e.fecha) - parseD(today0))/864e5);
+    const cuando = diff === 0 ? "es hoy" : diff === 1 ? "es mañana" : diff <= 7 ? `es en ${diff} días` : "";
+    out.push([diff <= 7 ? "bad" : "warn", `<b>${esc(e.novios)}</b> (${dia(e.fecha)})${cuando ? " " + cuando : ""}: ${pend.length === 1 ? "tarea pendiente" : pend.length + " tareas pendientes"} · ${pend.map(t => esc(t.texto)).join(" · ")}`, e.fecha, e.id]); });
   act.filter(e => (e.extras||[]).length).forEach(e => out.push(["info", `<b>${esc(e.novios)}</b> (${dia(e.fecha)}) tiene extras propuestos sin confirmar: ${(e.extras||[]).map(x=>esc(x.nombre)+" "+eur(num(x.precio))).join(", ")}.`, e.fecha]));
   const rank = { bad: 0, warn: 1, info: 2 };
   return out.sort((a,b) => a[2].localeCompare(b[2]) || rank[a[0]] - rank[b[0]]);
@@ -772,9 +777,9 @@ function groupByMonth(list){
 }
 function avisosHTML(av){
   let html = "", cur = "";
-  av.forEach(([k,t,f]) => { const ym = f.slice(0,7);
+  av.forEach(([k,t,f,id]) => { const ym = f.slice(0,7);
     if (ym !== cur) { cur = ym; const [y,m] = ym.split("-"); html += `<div class="alert-m"><span>${MES[+m-1]} ${y}</span></div>`; }
-    html += `<div class="alert ${k}"><span class="k"></span><span>${t}</span></div>`; });
+    html += id ? `<div class="alert ${k} tap" data-act="open" data-id="${id}" role="button"><span class="k"></span><span>${t}</span></div>` : `<div class="alert ${k}"><span class="k"></span><span>${t}</span></div>`; });
   return `<div class="alerts">${html}</div>`;
 }
 
@@ -1153,6 +1158,14 @@ function collectEdit(){
 }
 // Ojo: quien llama ya ha leído el formulario (collectEdit) antes de cambiar los datos; volver a leerlo aquí pisaría el cambio
 function rerenderEditor(){ const sb = $("#sheetBody"), st = sb.scrollTop; sb.innerHTML = editorBody(S.editing); sb.scrollTop = st; }
+// Fotomatón (o pack que lo incluye) → tarea "Comprar el álbum" (una sola vez por evento: si la borras, no vuelve)
+const ALBUM_TXT = "Comprar el álbum del fotomatón";
+const llevaFoto = e => (e.servicios||[]).some(s => /fotomat|photo|complet/i.test(s.nombre||""));
+function conAlbum(e){
+  if (e.albumAuto || !llevaFoto(e)) return false;
+  e.tareas = e.tareas || []; if (!e.tareas.some(t => /[áa]lbum/i.test(t.texto||""))) e.tareas.push({ texto: ALBUM_TXT, hecha: false });
+  e.albumAuto = true; return true;
+}
 function cleanEvent(e){
   const o = clone(e);
   o.servicios = (o.servicios||[]).filter(s=>s.nombre||num(s.precio)).map(s=>({nombre:String(s.nombre||"").trim(), precio:num(s.precio)}));
@@ -1162,6 +1175,7 @@ function cleanEvent(e){
   o.costes = { ayudanteNombre: (o.costes.ayudanteNombre||"").trim(), ayudante:num(o.costes.ayudante), album:num(o.costes.album), impresion:num(o.costes.impresion), otros:(o.costes.otros||[]).filter(x=>x.concepto||num(x.importe)).map(x=>({concepto:x.concepto||"", importe:num(x.importe)})) };
   o.derivacion = { companero:(o.derivacion.companero||"").trim(), comision:num(o.derivacion.comision), tipo:o.derivacion.tipo||"€", cobrada:!!o.derivacion.cobrada };
   o.tareas = (o.tareas||[]).filter(t=>String(t.texto||"").trim()).map(t=>({texto:String(t.texto).trim(), hecha:!!t.hecha}));
+  if (o.estado === "reservada" && (o.fecha||"") >= todayIso()) conAlbum(o);
   o.novios = (o.novios||"").trim(); o.lugar = (o.lugar||"").trim();
   o.actualizado = new Date().toISOString();
   delete o.id; return o;
