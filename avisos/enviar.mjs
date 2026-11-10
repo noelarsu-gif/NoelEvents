@@ -213,7 +213,7 @@ const texto = [titulo, "", intro, "", ...L.map(l => [l.titulo, l.lugar && "📍 
 if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD && TO.length) {
   const tr = nodemailer.createTransport({ service: "gmail", auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD.replace(/\s/g, "") } });
   await tr.sendMail({ from: `"NoelEvents" <${process.env.GMAIL_USER}>`, to: TO.join(","), subject: titulo, text: texto, html });
-  console.log("Email enviado a", TO.join(", "));
+  console.log(`Email enviado a ${TO.length} destinatario(s).`);
 } else console.log("Email desactivado: faltan los secretos GMAIL_USER y GMAIL_APP_PASSWORD.");
 
 /* ---------- Push ---------- */
