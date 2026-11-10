@@ -728,6 +728,12 @@ chap.querySelectorAll("button").forEach(b => b.onclick = () => {
 document.querySelector(".mark").onclick = e => { e.preventDefault(); scrollTo({top:0, behavior:"smooth"}); };
 
 layout(); applyLang(LANG);
+// Si esta web se abre dentro de la app instalada (versiones antiguas), botón para volver a la app
+if (matchMedia("(display-mode: standalone)").matches) {
+  const b = document.createElement("a"); b.href = "../index.html"; b.textContent = "← NoelEvents";
+  b.style.cssText = "position:fixed;z-index:61;left:50%;transform:translateX(-50%);top:calc(14px + env(safe-area-inset-top,0px));padding:8px 14px;border-radius:99px;background:rgba(17,15,12,.7);border:1px solid rgba(201,169,97,.4);color:#E2C88A;font:600 10px Montserrat,Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)";
+  document.body.appendChild(b);
+}
 const hv = $("#v-hero");
 const lift = () => { $("#curtain").classList.add("up"); setTimeout(()=>{$("#curtain").style.display="none"}, 1300); };
 let lifted = false; const go = () => { if (!lifted){ lifted = true; setTimeout(lift, 900); } };

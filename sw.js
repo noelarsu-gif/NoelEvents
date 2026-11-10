@@ -1,5 +1,5 @@
 // NoelEvents · service worker: la app funciona sin conexión. Los datos los sincroniza Firestore por su cuenta.
-const CACHE = "noelevents-v39";
+const CACHE = "noelevents-v40";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./img/hero.jpg", "./img/dj.jpg", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png"];
 const CDN = ["https://www.gstatic.com/firebasejs/", "https://cdnjs.cloudflare.com/", "https://fonts.googleapis.com/", "https://fonts.gstatic.com/"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
@@ -31,10 +31,10 @@ self.addEventListener("push", e => {
 });
 self.addEventListener("notificationclick", e => {
   e.notification.close();
-  const url = (e.notification.data && e.notification.data.url) || "./";
+  const url = (e.notification.data && e.notification.data.url) || "./index.html";
   const id = (url.match(/#evento-(.+)$/) || [])[1];
   e.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(ws => {
-    const w = ws.find(c => c.url.startsWith(self.registration.scope));
+    const w = ws.find(c => c.url.startsWith(self.registration.scope) && !c.url.includes("/dossier/"));
     if (w) { if (id) w.postMessage({ abrir: decodeURIComponent(id) }); return w.focus(); }
     return clients.openWindow(url);
   }));

@@ -9,6 +9,7 @@ import { JWT } from "google-auth-library";
 
 const MODO = process.env.MODO || "prueba";
 const APP = process.env.APP_URL || "";
+const HOME = APP ? APP + "index.html" : ""; // enlaces que deben abrir la app (no la web de ejemplos)
 let TO = (process.env.DESTINATARIOS || "").split(",").map(s => s.trim()).filter(Boolean);
 
 if (!process.env.FIREBASE_SERVICE_ACCOUNT) { console.error("Falta el secreto FIREBASE_SERVICE_ACCOUNT"); process.exit(1); }
@@ -61,7 +62,7 @@ async function avisarNuevos(){
     const titulo = pick(TIT)([a1, a2]);
     const por = e.creadoPor ? `${e.creadoPor} ha cerrado ` : "";
     const cuerpo = `${por}${e.novios} · ${fecha(e.fecha)}${e.lugar ? " · " + e.lugar : ""}`;
-    const url = APP + "#evento-" + encodeURIComponent(d.id);
+    const url = HOME + "#evento-" + encodeURIComponent(d.id);
     if (tokens.length) {
       const r = await admin.messaging().sendEachForMulticast({ tokens, webpush: { notification: { title: titulo, body: cuerpo, icon: APP + "icons/icon-192.png", badge: APP + "icons/icon-192.png", tag: "nuevo-" + d.id }, fcmOptions: { link: url } }, data: { url } });
       console.log(`Nuevo evento: ${r.successCount} push enviadas, ${r.failureCount} fallidas`);
@@ -100,7 +101,7 @@ async function syncCalendario(){
       c.ayudanteNombre && "🤝 Ayudante: " + c.ayudanteNombre,
       e.estado === "derivada" ? `↪️ Derivada a ${(e.derivacion || {}).companero || "compañero"}` : (pend ? `💰 Pendiente: ${eur(pend)}` : "✅ Cobrado"),
       e.notasEquipo && "\n" + e.notasEquipo,
-      APP && "\nAbrir en NoelEvents: " + APP + "#evento-" + encodeURIComponent(d.id)
+      APP && "\nAbrir en NoelEvents: " + HOME + "#evento-" + encodeURIComponent(d.id)
     ].filter(Boolean).join("\n");
     const body = { id, summary: `${e.estado === "derivada" ? "↪️ " : ""}${({ boda: "💍", fiesta: "🪩", empresa: "🥂", "cumpleaños": "🎂" })[e.tipo] || "🎧"} ${e.novios}`, location: e.lugar || "", description: desc, start, end,
       colorId: e.estado === "derivada" ? "8" : (pagado(e) > 0 ? "10" : "6"),
@@ -135,11 +136,11 @@ let _tokens = null;
 async function push(title, body, url, tag){
   if (!_tokens) _tokens = (await db.collection("push").get()).docs.map(d => d.id);
   if (!_tokens.length) { console.log("Push: ningún móvil activado."); return; }
-  const r = await admin.messaging().sendEachForMulticast({ tokens: _tokens, webpush: { notification: { title, body, icon: APP + "icons/icon-192.png", badge: APP + "icons/icon-192.png", ...(tag ? { tag } : {}) }, fcmOptions: { link: url || APP } }, data: { url: url || APP } });
+  const r = await admin.messaging().sendEachForMulticast({ tokens: _tokens, webpush: { notification: { title, body, icon: APP + "icons/icon-192.png", badge: APP + "icons/icon-192.png", ...(tag ? { tag } : {}) }, fcmOptions: { link: url || HOME } }, data: { url: url || HOME } });
   console.log(`Push (${tag ? tag.split("-")[0] : "aviso"}): ${r.successCount} enviadas, ${r.failureCount} fallidas`);
   await Promise.all(r.responses.map((x, i) => !x.success && /registration-token-not-registered|invalid-argument/.test(x.error?.code || "") ? db.collection("push").doc(_tokens[i]).delete() : null));
 }
-const linkEv = id => APP + "#evento-" + encodeURIComponent(id);
+const linkEv = id => HOME + "#evento-" + encodeURIComponent(id);
 const faltan = n => n === 0 ? "hoy" : n === 1 ? "mañana" : `en ${n} días`;
 const diasHasta = f => Math.round((new Date(f + "T12:00:00Z") - new Date(hoyMadrid() + "T12:00:00Z")) / 864e5);
 
@@ -263,8 +264,8 @@ if (MODO === "seguridad") {
     const titulo = `🔒 Sesión de ${quien} bloqueada en NoelEvents`;
     const cuerpo = `${por} ha cerrado la sesión de ${quien} en todos sus dispositivos el ${hora}. Los móviles con esa sesión ya no pueden ver nada y borrarán sus datos al conectarse. Para volver a usar la app hay que entrar de nuevo.`;
     if (mailer && TO.length) await mailer.sendMail({ from: `"NoelEvents" <${process.env.GMAIL_USER}>`, to: TO.join(","), subject: titulo, text: cuerpo + "\n\nSi no habéis sido vosotros, cambiad la contraseña cuanto antes.\n" + APP,
-      html: `<div style="background:#0B0A08;color:#F3EEE4;font-family:Helvetica,Arial,sans-serif;padding:28px"><div style="font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#E08A7E;font-weight:bold">Seguridad</div><div style="font-family:Georgia,serif;font-size:26px;margin:10px 0 14px">${esc(titulo)}</div><p style="font-size:15px;line-height:1.6;color:#D8D2C6">${esc(cuerpo)}</p><p style="font-size:13px;line-height:1.6;color:#E8B27A">Si no habéis sido vosotros, cambiad la contraseña cuanto antes.</p>${APP ? `<a href="${APP}" style="display:inline-block;background:#C9A961;color:#1A140A;text-decoration:none;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:bold;padding:14px 22px">Abrir NoelEvents</a>` : ""}</div>` });
-    if (tokens.length) await admin.messaging().sendEachForMulticast({ tokens, webpush: { notification: { title: titulo, body: `${por} ha cerrado la sesión de ${quien}.`, icon: APP + "icons/icon-192.png" }, fcmOptions: { link: APP } }, data: { url: APP } }).catch(() => {});
+      html: `<div style="background:#0B0A08;color:#F3EEE4;font-family:Helvetica,Arial,sans-serif;padding:28px"><div style="font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#E08A7E;font-weight:bold">Seguridad</div><div style="font-family:Georgia,serif;font-size:26px;margin:10px 0 14px">${esc(titulo)}</div><p style="font-size:15px;line-height:1.6;color:#D8D2C6">${esc(cuerpo)}</p><p style="font-size:13px;line-height:1.6;color:#E8B27A">Si no habéis sido vosotros, cambiad la contraseña cuanto antes.</p>${APP ? `<a href="${HOME}" style="display:inline-block;background:#C9A961;color:#1A140A;text-decoration:none;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:bold;padding:14px 22px">Abrir NoelEvents</a>` : ""}</div>` });
+    if (tokens.length) await admin.messaging().sendEachForMulticast({ tokens, webpush: { notification: { title: titulo, body: `${por} ha cerrado la sesión de ${quien}.`, icon: APP + "icons/icon-192.png" }, fcmOptions: { link: HOME } }, data: { url: HOME } }).catch(() => {});
     await d.ref.update({ avisado: true });
     console.log("Aviso de seguridad enviado.");
   }
@@ -336,7 +337,7 @@ ${L.map(l => `<tr><td style="border:1px solid #3A342A;padding:18px 20px">
   ${l.tareas.length ? `<div style="font-size:13px;line-height:1.6;color:#E8B27A;margin-top:8px">Pendiente: ${l.tareas.map(esc).join(" · ")}</div>` : ""}
 </td></tr><tr><td style="height:10px"></td></tr>`).join("")}
 <tr><td style="font-family:Georgia,serif;font-style:italic;font-size:20px;color:#C9A961;padding:10px 0 18px">${esc(cierre)}</td></tr>
-${APP ? `<tr><td><a href="${APP}" style="display:inline-block;background:#C9A961;color:#1A140A;text-decoration:none;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:bold;padding:14px 22px">Abrir NoelEvents</a></td></tr>` : ""}
+${APP ? `<tr><td><a href="${HOME}" style="display:inline-block;background:#C9A961;color:#1A140A;text-decoration:none;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:bold;padding:14px 22px">Abrir NoelEvents</a></td></tr>` : ""}
 </table></td></tr></table></body></html>`;
 const texto = [titulo, "", intro, "", ...L.map(l => [l.titulo, l.lugar && "📍 " + l.lugar, l.horario && "🕓 " + l.horario, l.servicios && "🎛️ " + l.servicios, l.pendiente ? "💰 Quedan " + eur(l.pendiente) : "✅ Cobrado", ""].filter(Boolean).join("\n")), cierre, APP].join("\n");
 
@@ -352,8 +353,8 @@ const tokens = toks.docs.map(d => d.id);
 if (tokens.length) {
   const cuerpo = uno ? [L[0].lugar, L[0].horario].filter(Boolean).join(" · ") || L[0].servicios : L.map(l => l.titulo).join(" | ");
   const r = await admin.messaging().sendEachForMulticast({ tokens,
-    webpush: { notification: { title: titulo, body: cuerpo, icon: APP + "icons/icon-192.png", badge: APP + "icons/icon-192.png" }, fcmOptions: { link: APP } },
-    data: { url: APP } });
+    webpush: { notification: { title: titulo, body: cuerpo, icon: APP + "icons/icon-192.png", badge: APP + "icons/icon-192.png" }, fcmOptions: { link: HOME } },
+    data: { url: HOME } });
   console.log(`Push: ${r.successCount} enviadas, ${r.failureCount} fallidas`);
   await Promise.all(r.responses.map((x, i) => !x.success && /registration-token-not-registered|invalid-argument/.test(x.error?.code || "") ? db.collection("push").doc(tokens[i]).delete() : null));
 } else console.log("Push: ningún móvil activado todavía.");
