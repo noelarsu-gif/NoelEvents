@@ -95,6 +95,7 @@ img{max-width:100%}
 .f .chip{min-height:40px;padding:0 12px;cursor:pointer;color:var(--muted)}
 .f .chip:has(input:checked){border-color:var(--gold);color:var(--ink);background:rgba(201,169,97,.08)}
 .cat-list{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.cat-lang{padding:4px 0 2px;gap:10px;flex-wrap:wrap}
 .cat-row{display:grid;grid-template-columns:minmax(0,1fr) 132px;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
 .cat-info{display:flex;flex-direction:column;gap:3px;min-width:0}
 .cat-name{font-family:var(--display);font-size:20px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -450,21 +451,34 @@ const DOSSIER_DEF = "https://noelarsu-gif.github.io/NoelEvents/dossier/";
 const DOSSIER_OLD = "https://drive.google.com/drive/folders/1Y12ArM-ZZsHUgZzgyPQsDZK2lXC7IIQ_?usp=drive_link";
 const dossierBase = () => { const d = S.cats && S.cats.dossier; return (d === undefined || d === DOSSIER_OLD) ? DOSSIER_DEF : d; };
 // Enlace a la web de ejemplos con la marca y los servicios de la tarifa (y el capítulo, si se indica)
-function dossierLink(base, t, cap){
+function dossierLink(base, t, cap, lang = "es"){
   if (!base) return "";
   if (!base.startsWith(DOSSIER_DEF)) return base;
   const sv = { ...SERV_ALL, ...(t.servicios || {}) }, q = new URLSearchParams();
   if (t.marca === "events") q.set("m", "events");
   const list = [sv.dj && t.marca !== "events" && "dj", sv.foto && "foto", sv.p360 && "360", (sv.fuego || sv.humo) && "fx"].filter(Boolean);
   if (list.length < 4) q.set("s", list.join(","));
+  q.set("l", lang === "ca" ? "ca" : "es");
   const qs = q.toString();
   return DOSSIER_DEF + (qs ? "?" + qs : "") + (cap && list.includes(cap) ? "#" + cap : "");
 }
-const catFile = t => (t && t.marca === "events") ? "Catalogo Noel Events 2027.pdf" : "Catalogo Noel DJ 2027.pdf";
+const catFile = (t, lang = catLang()) => (lang === "ca" ? "Cataleg " : "Catalogo ") + ((t && t.marca === "events") ? "Noel Events 2027.pdf" : "Noel DJ 2027.pdf");
+// Idioma del catálogo (se recuerda en este móvil)
+const catLang = () => { try { return localStorage.getItem("ne_catlang") === "ca" ? "ca" : "es"; } catch(_) { return "es"; } };
+const setCatLang = l => { try { localStorage.setItem("ne_catlang", l === "ca" ? "ca" : "es"); } catch(_) {} };
+// Textos que dibuja la app sobre las páginas
+const CAT_TXT = {
+  es: { tagline: "Los recuerdos y los momentos", serv: { dj:"DJ", foto:"FOTOMATÓN", p360:"PLATAFORMA 360", fuego:"FUEGO FRÍO", humo:"HUMO DE COLORES" }, intro: "AÑOS OFRECIENDO SERVICIOS PARA BODAS", introW: 403,
+        vid: "VER BODAS REALES EN VÍDEO", vFoto: "VER EL FOTOMATÓN EN VÍDEO", v360: "VER LA PLATAFORMA 360 EN VÍDEO", banL: "NUEVO · BODAS REALES EN VÍDEO", banT: "Vivid la experiencia antes del gran día", title: "Catálogo" },
+  ca: { tagline: "Els records i els moments", serv: { dj:"DJ", foto:"FOTOMATÓN", p360:"PLATAFORMA 360", fuego:"FOC FRED", humo:"FUM DE COLORS" }, intro: "ANYS OFERINT SERVEIS PER A CASAMENTS", introW: 560,
+        vid: "VEURE CASAMENTS REALS EN VÍDEO", vFoto: "VEURE EL FOTOMATÓN EN VÍDEO", v360: "VEURE LA PLATAFORMA 360 EN VÍDEO", banL: "NOU · CASAMENTS REALS EN VÍDEO", banT: "Viviu l’experiència abans del gran dia", title: "Catàleg" } };
+// En catalán algunos precios pequeños quedan desplazados (el texto de delante es más largo o más corto)
+const CAT_DX_CA = { "5:fuegoPack": 8, "8:fuegoPack": -53 };
 const catFmt = n => Math.round(num(n)).toLocaleString("es-ES", { useGrouping: "always" });
 const catCache = {};
 function loadImg(src){ return new Promise((ok, ko) => { const im = new Image(); im.onload = () => ok(im); im.onerror = ko; im.src = src; }); }
-async function buildCatalog(t, dossier){
+async function buildCatalog(t, dossier, lang = "es"){
+  const TX = CAT_TXT[lang] || CAT_TXT.es, dir = lang === "ca" ? "base-ca" : "base";
   const precios = t.precios || {}, sv = { ...SERV_ALL, ...(t.servicios || {}) };
   await Promise.all(['400 100px "Playfair Display"', '400 40px Montserrat', '500 40px Montserrat', '600 40px Montserrat'].map(f => document.fonts.load(f).catch(()=>{})));
   const pdf = new window.jspdf.jsPDF({ unit: "pt", format: "a4", compress: true });
@@ -478,7 +492,7 @@ async function buildCatalog(t, dossier){
   const trackW = (ctx, txt, tr) => [...txt].reduce((a, c) => a + ctx.measureText(c).width, 0) + tr * (txt.length - 1);
   let n = 0;
   for (const pg of pages) {
-    const im = await loadImg(`catalogos/base/p${pg+1}.jpg`);
+    const im = await loadImg(`catalogos/${dir}/p${pg+1}.jpg`);
     const cv = document.createElement("canvas"); cv.width = im.naturalWidth; cv.height = im.naturalHeight;
     const ctx = cv.getContext("2d"); ctx.drawImage(im, 0, 0); ctx.textBaseline = "alphabetic";
     const offs = {};
@@ -496,17 +510,17 @@ async function buildCatalog(t, dossier){
     // Portada sin DJ: "Los recuerdos y los momentos" en vez de "La música y los momentos"
     if (pg === 0 && !sv.dj && L.tagline) { const tg = L.tagline; ctx.fillStyle = `rgb(${tg.bg})`; ctx.fillRect(...tg.clear);
       await document.fonts.load(`italic ${tg.weight} 100px "Cormorant Garamond"`).catch(()=>{});
-      ctx.font = `italic ${tg.weight} ${tg.size}px "Cormorant Garamond"`; ctx.fillStyle = `rgb(${tg.fg})`; ctx.textAlign = "center"; ctx.fillText("Los recuerdos y los momentos", tg.cx, tg.base); ctx.textAlign = "start"; }
+      ctx.font = `italic ${tg.weight} ${tg.size}px "Cormorant Garamond"`; ctx.fillStyle = `rgb(${tg.fg})`; ctx.textAlign = "center"; ctx.fillText(TX.tagline, tg.cx, tg.base); ctx.textAlign = "start"; }
     // Portada: lista de servicios
     if (pg === 0 && !allOn) { const c = L.cover; const [x, y, w, h] = c.clear; ctx.fillStyle = `rgb(${c.bg})`; ctx.fillRect(x, y, w, h);
-      const items = [["dj","DJ"],["foto","FOTOMATÓN"],["p360","PLATAFORMA 360"],["fuego","FUEGO FRÍO"],["humo","HUMO DE COLORES"]].filter(([k]) => sv[k]).map(([,v]) => v);
+      const items = ["dj","foto","p360","fuego","humo"].filter(k => sv[k]).map(k => TX.serv[k]);
       const lines = items.length > 3 ? [items.slice(0, 3), items.slice(3)] : [items];
       ctx.font = `${c.weight} ${Math.round(c.size)}px Montserrat`; ctx.fillStyle = `rgb(${c.fg})`;
       lines.forEach((ln, i) => { const txt = ln.join(" · "), w2 = trackW(ctx, txt, c.track); const base = lines.length === 1 ? Math.round((c.base1 + c.base2) / 2) : (i ? c.base2 : c.base1); track(ctx, c.cx - w2 / 2, base, txt, c.track); }); }
     // Presentación sin DJ: fuera el "+25 años como DJ" y el +10 pasa a "años ofreciendo servicios para bodas"
     if (pg === 1 && !sv.dj && L.intro) { const it = L.intro, lb = it.label;
-      ctx.fillStyle = `rgb(${it.bg})`; ctx.fillRect(...it.clear25); ctx.fillRect(...lb.clear);
-      ctx.font = `${lb.weight} ${lb.size}px Montserrat`; ctx.fillStyle = `rgb(${lb.fg})`; track(ctx, lb.x, lb.base, "AÑOS OFRECIENDO SERVICIOS PARA BODAS", lb.track); }
+      ctx.fillStyle = `rgb(${it.bg})`; ctx.fillRect(...it.clear25); ctx.fillRect(lb.clear[0], lb.clear[1], Math.max(lb.clear[2], TX.introW), lb.clear[3]);
+      ctx.font = `${lb.weight} ${lb.size}px Montserrat`; ctx.fillStyle = `rgb(${lb.fg})`; track(ctx, lb.x, lb.base, TX.intro, lb.track); }
     // Número de sección (01, 02…) según el orden de las páginas incluidas
     const lab = L.labels.find(x => x.page === pg);
     if (lab) { const nuevo = String(pages.filter(x => SERV_PAGE[x]).indexOf(pg) + 1).padStart(2, "0");
@@ -519,7 +533,7 @@ async function buildCatalog(t, dossier){
       packsOn.forEach((k, i) => { const [x, y, w, h] = L.boxes[k], [sx, sy] = L.slots[i]; ctx.drawImage(src, x - 2, y - 2, w + 4, h + 4, sx - 2, sy - 2, w + 4, h + 4); offs[k] = [sx - x, sy - y]; });
     }
     if (pg === 8 && !sv.fuego) { const [x, y, w, h] = L.fuegoLine; ctx.fillStyle = "rgb(14,13,11)"; ctx.fillRect(x, y, w, h); }
-    CAT_SPEC.filter(sp => sp.page === pg).forEach(sp => {
+    CAT_SPEC.filter(sp => sp.page === pg).map(sp => { const d = lang === "ca" && CAT_DX_CA[pg + ":" + sp.key]; return d ? { ...sp, x: sp.x + d, clear: [sp.clear[0] + d, ...sp.clear.slice(1)] } : sp; }).forEach(sp => {
       if (pg === 8 && sp.key in PACK_REQ && !packsOn.includes(sp.key)) return;
       if (sp.key === "fuegoPack" && !sv.fuego) return;
       const v = catFmt(precios[sp.key] ?? CAT_BASE[sp.key]); if (v === sp.old) return;
@@ -552,41 +566,42 @@ async function buildCatalog(t, dossier){
         const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, "rgba(8,7,5,.10)"); g.addColorStop(1, "rgba(8,7,5,.62)");
         ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
         play(x + w / 2, y + h / 2 - 40, 132, GOLD, "rgba(11,10,8,.55)", GOLD);
-        ctx.font = "600 31px Montserrat"; ctx.fillStyle = "rgb(243,238,228)"; const tx = "VER BODAS REALES EN VÍDEO";
+        ctx.font = "600 31px Montserrat"; ctx.fillStyle = "rgb(243,238,228)"; const tx = TX.vid;
         track(ctx, x + w / 2 - trackW(ctx, tx, 7) / 2, y + h / 2 + 170, tx, 7);
-        enlaces.push([x, y, w, h, dossierLink(dossier, t)]);
+        enlaces.push([x, y, w, h, dossierLink(dossier, t, null, lang)]);
       }
       if (pg === 3 || pg === 4) {
-        const BX = 216, BY = 2770, BH = 120, BTXT = pg === 3 ? "VER EL FOTOMATÓN EN VÍDEO" : "VER LA PLATAFORMA 360 EN VÍDEO";
+        const BX = 216, BY = 2770, BH = 120, BTXT = pg === 3 ? TX.vFoto : TX.v360;
         ctx.font = "600 31px Montserrat"; const BW = Math.round(trackW(ctx, BTXT, 5) + 88 + 70);
         const g = ctx.createLinearGradient(BX, 0, BX + BW, 0); g.addColorStop(0, "rgb(226,200,138)"); g.addColorStop(1, GOLD);
         ctx.fillStyle = g; ctx.fillRect(BX, BY, BW, BH);
         play(BX + 62, BY + BH / 2, 26, null, DARK, "rgb(226,200,138)");
         ctx.fillStyle = DARK; ctx.textBaseline = "middle"; track(ctx, BX + 112, BY + BH / 2 + 2, BTXT, 5); ctx.textBaseline = "alphabetic";
-        enlaces.push([BX, BY, BW, BH, dossierLink(dossier, t, pg === 3 ? "foto" : "360")]);
+        enlaces.push([BX, BY, BW, BH, dossierLink(dossier, t, pg === 3 ? "foto" : "360", lang)]);
       }
       if (pg === 8) {
         const [x, y, w, h] = [216, 2262, 1949, 300];
         const g = ctx.createLinearGradient(x, y, x + w, y + h); g.addColorStop(0, "rgb(232,208,150)"); g.addColorStop(.55, GOLD); g.addColorStop(1, "rgb(176,142,72)");
         ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
-        ctx.font = "600 27px Montserrat"; ctx.fillStyle = DARK; track(ctx, x + 84, y + 92, "NUEVO · BODAS REALES EN VÍDEO", 7);
-        ctx.font = 'italic 500 84px "Cormorant Garamond"'; ctx.fillText("Vivid la experiencia antes del gran día", x + 80, y + 205);
+        ctx.font = "600 27px Montserrat"; ctx.fillStyle = DARK; track(ctx, x + 84, y + 92, TX.banL, 7);
+        ctx.font = 'italic 500 84px "Cormorant Garamond"'; ctx.fillText(TX.banT, x + 80, y + 205);
         play(x + w - 150, y + h / 2, 82, null, DARK, "rgb(232,208,150)");
-        enlaces.push([x, y, w, h, dossierLink(dossier, t)]);
+        enlaces.push([x, y, w, h, dossierLink(dossier, t, null, lang)]);
       }
     }
     if (n++) pdf.addPage("a4");
     pdf.addImage(cv.toDataURL("image/jpeg", 0.86), "JPEG", 0, 0, 595.28, 841.89);
     { const k = 595.28 / cv.width; enlaces.forEach(([x, y, w, h, url]) => url && pdf.link(x * k, y * k, w * k, h * k, { url })); }
   }
-  pdf.setProperties(t.marca === "events" ? { title: "Catálogo Noel Events 2027", author: "Noel Events" } : { title: "Catálogo Noel DJ 2027", author: "Noel DJ · Music & Events" });
+  pdf.setProperties(t.marca === "events" ? { title: TX.title + " Noel Events 2027", author: "Noel Events" } : { title: TX.title + " Noel DJ 2027", author: "Noel DJ · Music & Events" });
   return pdf.output("blob");
 }
-const catKey = t => JSON.stringify([t.precios, t.servicios || null, t.marca || "dj", dossierBase(), 2]);
+const catKey = t => JSON.stringify([t.precios, t.servicios || null, t.marca || "dj", dossierBase(), catLang(), 3]);
 function catPanel(){
   const ts = (S.cats || CAT_DEFAULT).tarifas;
   const resumen = t => { const sv = { ...SERV_ALL, ...(t.servicios || {}) }; const on = CAT_SERV.filter(([k]) => sv[k]); return on.length === CAT_SERV.length ? "Todos los servicios" : on.map(([, l]) => l.replace(/ \(.*\)/, "")).join(" · "); };
   return `<div class="panel cat-panel"><div class="between"><span class="label" style="color:var(--gold);font-weight:600">Enviar catálogo a novios</span><button class="btn sm ghost tap" data-act="catedit">${I.edit} Editar</button></div>
+    <div class="between cat-lang"><span class="sub" style="margin:0">Idioma del catálogo</span><div class="seg" role="tablist" aria-label="Idioma del catálogo">${[["es","Castellano"],["ca","Català"]].map(([k,v]) => `<button class="tap ${catLang()===k?"on":""}" data-act="catlang" data-v="${k}" role="tab" aria-selected="${catLang()===k}">${v}</button>`).join("")}</div></div>
     <div class="cat-list">${ts.map(t => { const ready = catCache[t.id] && catCache[t.id].key === catKey(t);
       return `<div class="cat-row"><div class="cat-info"><span class="cat-name">${esc(t.nombre)}</span><span class="cat-sub">${esc(resumen(t))}</span></div>
       <button class="btn sm ${ready ? "primary" : ""} tap cat-btn" data-act="cat" data-v="${t.id}">${ready ? I.wa + " Compartir" : I.pdf + " Preparar"}</button></div>`; }).join("")}</div>
@@ -1416,11 +1431,12 @@ document.addEventListener("click", async ev => {
     case "ics1": { const e = S.events.find(x=>x.id===id); await exportIcs([e], `${e.novios} ${e.fecha}`); break; }
     case "cat": { const t = (S.cats || CAT_DEFAULT).tarifas.find(x => x.id === a.dataset.v); if (!t) break;
       const c = catCache[t.id];
-      if (c && c.key === catKey(t)) { await saveFile(catFile(t), c.blob, "Catálogo descargado.", true); break; }
+      if (c && c.key === catKey(t)) { await saveFile(catFile(t), c.blob, catLang() === "ca" ? "Catàleg descarregat." : "Catálogo descargado.", true); break; }
       a.disabled = true; a.innerHTML = "Generando…";
-      try { const blob = await buildCatalog(t, dossierBase()); catCache[t.id] = { key: catKey(t), blob }; toast("Catálogo listo. Pulsa “Compartir”."); }
+      try { const blob = await buildCatalog(t, dossierBase(), catLang()); catCache[t.id] = { key: catKey(t), blob }; toast("Catálogo listo. Pulsa “Compartir”."); }
       catch(err){ console.log("[NoelEvents] catálogo", err); toast("No se ha podido generar el catálogo. Comprueba la conexión."); }
       render(false); break; }
+    case "catlang": setCatLang(a.dataset.v); render(false); buzz(); break;
     case "catedit": openCatEditor(); break;
     case "catadd": { const c = collectCat(); c.tarifas.push({ id: uid(), nombre: "Tarifa nueva", precios: { ...CAT_BASE } }); rerenderCat(c); } break;
     case "catdup": { const c = collectCat(); const o = c.tarifas[+a.dataset.i]; c.tarifas.splice(+a.dataset.i + 1, 0, { id: uid(), nombre: o.nombre + " (copia)", marca: o.marca || "dj", servicios: { ...SERV_ALL, ...(o.servicios || {}) }, precios: { ...o.precios } }); rerenderCat(c); } break;

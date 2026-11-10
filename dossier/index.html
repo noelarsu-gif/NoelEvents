@@ -339,9 +339,9 @@ const ALL = ["dj","foto","360","fx"];
 let ON = (QS.get("s") || "").split(",").map(x => x.trim()).filter(x => ALL.includes(x));
 if (!ON.length) ON = EV ? ["foto","360","fx"] : ALL.slice();
 if (EV) ON = ON.filter(x => x !== "dj");
-if (QS.get("l") === "ca") { try{ localStorage.setItem("nd_lang","ca"); }catch(_){} }
 let LANG = "es";
 try{ const q = localStorage.getItem("nd_lang"); if (q === "ca" || q === "es") LANG = q; }catch(_){}
+if (QS.get("l") === "ca" || QS.get("l") === "es") LANG = QS.get("l");  // el catálogo manda el idioma
 
 function applyLang(l){
   LANG = l; const d = T[l];
