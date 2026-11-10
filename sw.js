@@ -1,5 +1,5 @@
 // NoelEvents · service worker: la app funciona sin conexión. Los datos los sincroniza Firestore por su cuenta.
-const CACHE = "noelevents-v26";
+const CACHE = "noelevents-v27";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./img/hero.jpg", "./img/dj.jpg", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png"];
 const CDN = ["https://www.gstatic.com/firebasejs/", "https://cdnjs.cloudflare.com/", "https://fonts.googleapis.com/", "https://fonts.gstatic.com/"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
@@ -9,6 +9,8 @@ self.addEventListener("fetch", e => {
   const url = new URL(req.url);
   const same = url.origin === location.origin, cdn = CDN.some(p => req.url.startsWith(p));
   if (!same && !cdn) return;
+  // La web de ejemplos (/dossier/) va por libre: vídeos por streaming, sin caché de la app
+  if (same && url.pathname.includes("/dossier/")) return;
   // La página: primero red (para recibir actualizaciones), si no hay, la copia guardada
   if (req.mode === "navigate") {
     e.respondWith(fetch(req.url, { cache: "no-store", credentials: "same-origin" }).then(r => { const cp = r.clone(); caches.open(CACHE).then(c => c.put("./index.html", cp)); return r; }).catch(() => caches.match("./index.html")));

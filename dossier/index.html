@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B0A08">
+<meta name="description" content="Bodas reales: DJ, fotomatón, plataforma 360 y efectos especiales. Lleida y Cataluña.">
+<meta property="og:title" content="Noches que se recuerdan · Bodas">
+<meta property="og:description" content="DJ, fotomatón, plataforma 360 y efectos especiales en bodas reales.">
+<meta property="og:image" content="https://noelarsu-gif.github.io/NoelEvents/dossier/v/humo.jpg">
+<meta property="og:type" content="website">
+<link rel="icon" href="../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<style>[hidden]{display:none!important}html,body{margin:0}img{max-width:100%}:root{padding-top:0}</style>
+<title>Noel DJ Experiencias</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Montserrat:wght@300;400;500;600&family=Playfair+Display:wght@400&display=swap">
+<style>
+:root{
+  --bg:#0B0A08; --surface:#151310; --line:#2E2A22; --ink:#F3EEE4; --ink2:#D8D2C6; --muted:#9C958A;
+  --gold:#C9A961; --gold2:#E2C88A; --shade:rgba(8,7,5,.78);
+  --display:"Cormorant Garamond","Iowan Old Style",Georgia,serif;
+  --num:"Playfair Display",Georgia,serif;
+  --body:Montserrat,"Helvetica Neue",Arial,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:300;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--bg)}
+a{color:inherit}
+
+/* ---------- barra superior ---------- */
+.top{position:fixed;z-index:30;left:0;right:0;top:env(safe-area-inset-top,0px);display:flex;align-items:center;justify-content:space-between;
+  padding-block:14px;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));pointer-events:none}
+.mark{font-family:var(--display);font-weight:400;font-size:20px;letter-spacing:.02em;pointer-events:auto;text-decoration:none}
+.mark b{font-weight:500;color:var(--gold2)}
+.mark small{display:block;font-family:var(--body);font-size:8.5px;font-weight:500;letter-spacing:.38em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.lang{pointer-events:auto;display:flex;border:1px solid rgba(201,169,97,.35);border-radius:99px;padding:3px;background:rgba(11,10,8,.4);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.lang button{all:unset;cursor:pointer;font-size:10.5px;font-weight:600;letter-spacing:.16em;padding:6px 11px;border-radius:99px;color:var(--muted);transition:color .3s,background .3s}
+.lang button[aria-pressed=true]{background:var(--gold);color:#14110B}
+.prog{position:fixed;z-index:31;left:0;right:0;top:env(safe-area-inset-top,0px);height:2px;pointer-events:none}
+.prog i{display:block;height:100%;width:100%;transform-origin:0 50%;transform:scaleX(0);background:linear-gradient(90deg,var(--gold),var(--gold2))}
+
+/* ---------- escenario ---------- */
+.track{position:relative}
+.stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;background:var(--bg)}
+.layer{position:absolute;inset:0;overflow:hidden;transform-origin:50% 50%;will-change:transform,opacity;opacity:0;visibility:hidden;background:#000}
+.box{position:absolute;left:0;top:0;overflow:hidden;will-change:transform,width,height;background:#000}
+.box video,.box img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.box .b2{opacity:0}
+.layer .shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(8,7,5,.55) 0%,rgba(8,7,5,0) 26%,rgba(8,7,5,0) 46%,rgba(8,7,5,.86) 100%)}
+.layer .dim{position:absolute;inset:0;background:#080705;opacity:0;pointer-events:none}
+.layer.flat{background:var(--bg)}
+.grain{position:absolute;inset:-50%;pointer-events:none;z-index:20;opacity:.07;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+
+/* ---------- textos ---------- */
+.tx{position:absolute;z-index:5;left:0;right:0;bottom:0;opacity:0;visibility:hidden;will-change:transform,opacity;
+  padding-bottom:calc(96px + env(safe-area-inset-bottom,0px));padding-top:0;
+  padding-left:max(22px,env(safe-area-inset-left,0px));padding-right:max(22px,env(safe-area-inset-right,0px))}
+.tx .in{max-width:620px}
+.tx.top-t{bottom:auto;top:calc(72px + env(safe-area-inset-top,0px));padding-bottom:0}
+.tx.center{top:0;display:flex;align-items:center;justify-content:center;text-align:center;padding-bottom:0}
+.tx.center .in{max-width:780px}
+.eye{font-size:10.5px;font-weight:600;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:14px;margin:0 0 16px}
+.eye .n{font-family:var(--num);font-size:13px;letter-spacing:.06em;color:var(--gold2)}
+.eye::after{content:"";height:1px;width:44px;background:linear-gradient(90deg,var(--gold),transparent)}
+.center .eye{justify-content:center}
+.center .eye::before{content:"";height:1px;width:44px;background:linear-gradient(270deg,var(--gold),transparent)}
+h1,h2{font-family:var(--display);font-weight:300;margin:0;line-height:.98;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:clamp(52px,11vw,132px)}
+h2{font-size:clamp(40px,7.4vw,92px)}
+h1 em,h2 em{font-style:italic;color:var(--gold2);font-weight:300}
+.lead{font-size:clamp(14px,1.5vw,16.5px);line-height:1.75;color:var(--ink2);margin:20px 0 0;max-width:46ch;font-weight:300}
+.center .lead{margin-inline:auto}
+.feats{list-style:none;margin:24px 0 0;padding:0;display:grid;gap:0;max-width:440px}
+.feats li{display:flex;gap:16px;align-items:baseline;padding:13px 0;border-top:1px solid rgba(201,169,97,.22);font-size:14.5px;color:var(--ink2);line-height:1.45}
+.feats li:last-child{border-bottom:1px solid rgba(201,169,97,.22)}
+.feats li span{font-family:var(--num);font-size:12px;color:var(--gold);min-width:20px}
+.manif{font-family:var(--display);font-weight:300;font-size:clamp(28px,4.6vw,58px);line-height:1.18;letter-spacing:-.005em;text-wrap:balance;margin:0}
+.manif .w{opacity:.14;transition:none}
+.manif .w.g{font-style:italic;color:var(--gold2)}
+.cue{position:absolute;z-index:6;left:50%;bottom:calc(26px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;font-size:9.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--muted)}
+.cue i{width:1px;height:42px;background:linear-gradient(var(--gold),transparent);animation:cue 2.2s cubic-bezier(.6,0,.3,1) infinite;transform-origin:top}
+@keyframes cue{0%{transform:scaleY(0);opacity:1}55%{transform:scaleY(1);opacity:1}100%{transform:scaleY(1);opacity:0}}
+.tag{position:absolute;z-index:4;left:14px;bottom:12px;font-size:9.5px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--ink);opacity:0;
+  padding:7px 11px;border-radius:99px;background:rgba(11,10,8,.5);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(201,169,97,.3)}
+.hero-t{bottom:0}
+.hero-t .in{max-width:min(920px,100%)}
+
+/* ---------- navegación de capítulos ---------- */
+.chap{position:fixed;z-index:30;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translate(-50%,24px);opacity:0;pointer-events:none;
+  display:flex;gap:2px;padding:4px;border-radius:99px;background:rgba(17,15,12,.55);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);
+  border:1px solid rgba(201,169,97,.22);transition:opacity .5s,transform .6s cubic-bezier(.22,.8,.24,1);max-width:calc(100vw - 24px)}
+.chap.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.chap button{all:unset;cursor:pointer;white-space:nowrap;font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;padding:9px 13px;border-radius:99px;color:var(--muted);transition:color .35s,background .35s}
+.chap button.act{color:#14110B;background:var(--gold2)}
+
+/* ---------- telón inicial ---------- */
+.curtain{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;transition:clip-path 1.1s cubic-bezier(.76,0,.24,1);clip-path:inset(0 0 0 0)}
+.curtain.up{clip-path:inset(0 0 100% 0)}
+.curtain .m{font-family:var(--display);font-size:clamp(40px,8vw,72px);font-weight:300;letter-spacing:.02em;opacity:0;transform:translateY(14px);animation:rise 1s .15s cubic-bezier(.22,.8,.24,1) forwards}
+.curtain .m em{color:var(--gold2)}
+.curtain .l{width:0;height:1px;background:var(--gold);animation:line 1.2s .4s cubic-bezier(.65,0,.35,1) forwards}
+.curtain .s{font-size:9.5px;letter-spacing:.42em;text-transform:uppercase;color:var(--muted);opacity:0;animation:rise .9s .6s ease forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+@keyframes line{to{width:140px}}
+
+/* ---------- cierre ---------- */
+.end{position:relative;z-index:2;background:var(--bg);text-align:center;padding-block:120px 64px;
+  padding-left:max(22px,env(safe-area-inset-left,0px));padding-right:max(22px,env(safe-area-inset-right,0px));
+  padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+.end::before{content:"";position:absolute;left:50%;top:0;width:1px;height:76px;background:linear-gradient(var(--gold),transparent)}
+.end .in{max-width:720px;margin:0 auto}
+.end h2{font-size:clamp(44px,8vw,96px)}
+.end .lead{margin-inline:auto}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin:44px auto 0;max-width:720px}
+.cards div{background:var(--surface);padding:22px 16px;text-align:left;min-width:0}
+.cards b{display:block;font-family:var(--num);font-weight:400;font-size:13px;color:var(--gold);margin-bottom:10px}
+.cards span{font-family:var(--display);font-size:22px;line-height:1.1}
+.cta{display:inline-flex;align-items:center;gap:12px;margin-top:44px;padding:17px 30px;border-radius:99px;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#14110B;text-decoration:none;font-size:11.5px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;box-shadow:0 14px 40px -14px rgba(201,169,97,.6)}
+.cta[hidden]{display:none}
+.sign{margin-top:44px;font-family:var(--display);font-size:20px;color:var(--ink2)}
+.sign small{display:block;margin-top:6px;font-family:var(--body);font-size:9.5px;letter-spacing:.38em;text-transform:uppercase;color:var(--muted)}
+.contact{margin:14px 0 0;display:flex;justify-content:center;gap:12px;font-size:13px;letter-spacing:.08em;color:var(--gold2);user-select:text}
+.contact a{text-decoration:none}.contact .dot{color:var(--muted)}
+.foot{margin-top:72px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#5f594f}
+
+@media (orientation:landscape) and (min-width:820px){
+  .tx{padding-left:max(6vw,env(safe-area-inset-left,0px));padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .tx.top-t{top:calc(84px + env(safe-area-inset-top,0px))}
+}
+@media (max-width:420px){ .chap button{padding:9px 10px;letter-spacing:.1em} }
+@media (prefers-reduced-motion:reduce){ .cue i{animation:none} .curtain{transition:none} }
+</style>
+</head>
+<body>
+
+<div class="curtain" id="curtain" aria-hidden="true">
+  <div class="m" id="cMark">Noel <em>DJ</em></div><div class="l"></div><div class="s">Music &amp; Events</div>
+</div>
+
+<header class="top">
+  <a class="mark" id="mark" href="#inicio">Noel <b>DJ</b><small>Music &amp; Events</small></a>
+  <div class="lang" role="group" aria-label="Idioma">
+    <button type="button" data-l="es" aria-pressed="true">ES</button>
+    <button type="button" data-l="ca" aria-pressed="false">CA</button>
+  </div>
+</header>
+<div class="prog"><i id="prog"></i></div>
+
+<div class="track" id="track">
+  <div class="stage" id="stage">
+
+    <!-- 0 · Portada -->
+    <div class="layer" id="L-hero">
+      <div class="box" id="b-hero"><video id="v-hero" muted playsinline loop preload="auto"></video></div>
+      <div class="shade"></div><div class="dim" id="d-hero"></div>
+      <div class="tx hero-t" id="t-hero"><div class="in">
+        <p class="eye" data-t="heroEye"></p>
+        <h1 data-t="heroH"></h1>
+        <p class="lead" data-t="heroP"></p>
+      </div></div>
+      <div class="tx center" id="t-manif"><div class="in"><p class="manif" id="manif"></p></div></div>
+      <div class="cue" id="cue"><i></i><span data-t="cue"></span></div>
+    </div>
+
+    <!-- 1 · Música -->
+    <div class="layer" id="L-dj">
+      <div class="box" id="b-dj">
+        <video data-src="v/dj.mp4" poster="v/dj.jpg" muted playsinline loop preload="none"></video>
+        <video class="b2" data-src="v/pista.mp4" poster="v/pista.jpg" muted playsinline loop preload="none"></video>
+      </div>
+      <div class="shade"></div>
+      <div class="tx" id="t-dj1"><div class="in">
+        <p class="eye"><span class="n">01</span><span data-t="djEye"></span></p>
+        <h2 data-t="djH"></h2><p class="lead" data-t="djP"></p>
+      </div></div>
+      <div class="tx" id="t-dj2"><div class="in">
+        <p class="eye" data-t="djEye2"></p>
+        <ul class="feats" data-t="djF"></ul>
+      </div></div>
+    </div>
+
+    <!-- 2 · Fotomatón -->
+    <div class="layer" id="L-foto">
+      <div class="box" id="b-fa"><video data-src="v/cabina.mp4" poster="v/cabina.jpg" muted playsinline loop preload="none"></video><span class="tag" data-t="tagCab"></span></div>
+      <div class="box" id="b-fb"><video data-src="v/grupo.mp4" poster="v/grupo.jpg" muted playsinline loop preload="none"></video><span class="tag" data-t="tagGru"></span></div>
+      <div class="shade" id="s-foto"></div>
+      <div class="tx" id="t-f1"><div class="in">
+        <p class="eye"><span class="n">02</span><span data-t="foEye"></span></p>
+        <h2 data-t="foH"></h2><p class="lead" data-t="foP"></p>
+      </div></div>
+      <div class="tx" id="t-f2"><div class="in"><ul class="feats" data-t="foF"></ul></div></div>
+    </div>
+
+    <!-- 3 · Plataforma 360 -->
+    <div class="layer" id="L-360">
+      <div class="box" id="b-r1"><video data-src="v/r360a.mp4" poster="v/r360a.jpg" muted playsinline loop preload="none"></video><div class="dim"></div></div>
+      <div class="box" id="b-r3"><video data-src="v/r360c.mp4" poster="v/r360c.jpg" muted playsinline loop preload="none"></video><div class="dim"></div></div>
+      <div class="box" id="b-r2"><video data-src="v/r360b.mp4" poster="v/r360b.jpg" muted playsinline loop preload="none"></video><div class="dim"></div></div>
+      <div class="shade" id="s-360"></div>
+      <div class="tx" id="t-r1"><div class="in">
+        <p class="eye"><span class="n">03</span><span data-t="rEye"></span></p>
+        <h2 data-t="rH"></h2><p class="lead" data-t="rP"></p>
+      </div></div>
+      <div class="tx top-t" id="t-r2"><div class="in">
+        <p class="eye" data-t="rEye2"></p>
+        <p class="lead" style="margin-top:0" data-t="rP2"></p>
+      </div></div>
+    </div>
+
+    <!-- 4 · Efectos -->
+    <div class="layer" id="L-fx">
+      <div class="box" id="b-x1"><video data-src="v/fuegos.mp4" poster="v/fuegos.jpg" muted playsinline loop preload="none"></video><span class="tag" data-t="tagF"></span></div>
+      <div class="box" id="b-x2"><video data-src="v/co2.mp4" poster="v/co2.jpg" muted playsinline loop preload="none"></video><span class="tag" data-t="tagC"></span></div>
+      <div class="box" id="b-x3"><video data-src="v/colores.mp4" poster="v/colores.jpg" muted playsinline loop preload="none"></video><span class="tag" data-t="tagK"></span></div>
+      <div class="shade" id="s-fx"></div>
+      <div class="tx" id="t-x1"><div class="in">
+        <p class="eye"><span class="n">04</span><span data-t="xEye"></span></p>
+        <h2 data-t="xH"></h2><p class="lead" data-t="xP"></p>
+      </div></div>
+      <div class="tx top-t" id="t-x2"><div class="in"><p class="eye" data-t="xEye2"></p></div></div>
+    </div>
+
+    <!-- 5 · Momento -->
+    <div class="layer" id="L-mo">
+      <div class="box" id="b-mo"><img id="i-mo" src="v/humo.jpg" alt="" decoding="async"></div>
+      <div class="shade"></div><div class="dim" id="d-mo"></div>
+      <div class="tx center" id="t-mo"><div class="in">
+        <p class="eye" data-t="moEye"></p>
+        <h2 data-t="moH"></h2>
+      </div></div>
+    </div>
+
+    <div class="grain"></div>
+  </div>
+</div>
+
+<section class="end" id="reservar">
+  <div class="in">
+    <p class="eye" style="justify-content:center" data-t="endEye"></p>
+    <h2 data-t="endH"></h2>
+    <p class="lead" data-t="endP"></p>
+    <div class="cards" data-t="endC"></div>
+    <a class="cta" id="cta" hidden target="_blank" rel="noopener"><span data-t="endB"></span><span aria-hidden="true">→</span></a>
+    <div class="sign"><span id="signN">Noel Arroyo</span><small id="signS">Noel DJ · Music &amp; Events · Lleida</small></div>
+    <p class="contact"><span>646 700 313</span><span class="dot">·</span><a href="https://www.instagram.com/noelevents/" target="_blank" rel="noopener">@noelevents</a></p>
+    <p class="foot" data-t="foot"></p>
+  </div>
+</section>
+
+<nav class="chap" id="chap" aria-label="Capítulos">
+  <button type="button" data-go="dj" data-t="nDJ"></button>
+  <button type="button" data-go="foto" data-t="nFo"></button>
+  <button type="button" data-go="360" data-t="n36"></button>
+  <button type="button" data-go="fx" data-t="nFx"></button>
+</nav>
+
+<script>
+/* ===== Contacto: rellenar para activar el botón de reserva ===== */
+const WHATSAPP = "34646700313";
+
+/* ===== Textos ES / CA ===== */
+const T = {
+es:{
+  heroEye:"Bodas · Lleida y Cataluña",
+  heroH:"Noches que<br><em>se recuerdan</em>",
+  heroP:"Música, fotomatón, plataforma 360 y efectos especiales para la fiesta de vuestra vida.",
+  cue:"Desliza",
+  manif:"No ponemos música. Creamos *la noche* que vuestros invitados recordarán durante años: sonido impecable, luz que acompaña cada momento y detalles que convierten una fiesta en *una historia.*",
+  djEye:"Música", djH:"El ritmo lo marca<br><em>vuestra pista</em>",
+  djP:"Leemos a los invitados en tiempo real. Cada canción llega en el momento justo, del primer baile al último tema.",
+  djEye2:"Todo incluido",
+  djF:["Sonido e iluminación profesional","Ceremonia, aperitivo, banquete y fiesta","Vuestra lista, con nuestro criterio en pista","Cabina de DJ integrada en la decoración"],
+  foEye:"Fotomatón", foH:"Recuerdos que<br><em>se llevan a casa</em>",
+  foP:"Una cámara vintage, atrezzo y fotos impresas al momento. Siempre hay cola.",
+  tagCab:"Cabina vintage", tagGru:"Al momento",
+  foF:["Cámara réflex e impresión ilimitada","Plantilla con vuestro logo o diseño","Álbum de firmas y todas las fotos por enlace","Atrezzo incluido y asistente durante el servicio"],
+  rEye:"Plataforma 360", rH:"La fiesta,<br><em>a cámara lenta</em>",
+  rP:"Vídeos 360° de vuestros invitados, listos para compartir antes de que acabe la canción.",
+  rEye2:"Vuestro sello", rP2:"Vídeos en alta calidad con vuestro logo y vuestra música. Descarga al momento por QR y todos los vídeos por enlace.",
+  xEye:"Efectos", xH:"El instante que<br><em>todos graban</em>",
+  xP:"Fuegos fríos para la entrada, el primer baile o la tarta. Seguros en interior y espectaculares en vídeo.",
+  xEye2:"Efectos especiales",
+  tagF:"Fuegos fríos", tagC:"Ambiente en pista", tagK:"Humo de colores",
+  moEye:"Momentos", moH:"Hay instantes que<br>solo pasan <em>una vez.</em>",
+  endEye:"Bodas 2027", endH:"Reservad<br><em>vuestra fecha</em>",
+  endP:"Las fechas de primavera y verano vuelan. Contadnos vuestra boda y os preparamos una propuesta a medida.",
+  endC:[["dj","DJ y sonido"],["foto","Fotomatón"],["360","Plataforma 360"],["fx","Fuegos fríos y humo"]],
+  endB:"Pedir propuesta",
+  foot:"Imágenes reales de nuestras bodas",
+  manifEv:"Vosotros disfrutáis. *Nosotros* nos ocupamos del resto: fotos impresas al momento, vídeos que se comparten antes de que acabe la canción y detalles que convierten una boda en *un recuerdo para siempre.*",
+  heroHEv:"Momentos que<br><em>se recuerdan</em>", heroPEv:"para el día más especial.", y:"y",
+  sv:{dj:"DJ",foto:"fotomatón","360":"plataforma 360",fx:"efectos especiales"},
+  nDJ:"Música", nFo:"Fotomatón", n36:"360", nFx:"Efectos"
+},
+ca:{
+  heroEye:"Casaments · Lleida i Catalunya",
+  heroH:"Nits que<br><em>es recorden</em>",
+  heroP:"Música, fotomatón, plataforma 360 i efectes especials per a la festa de la vostra vida.",
+  cue:"Llisca",
+  manif:"No posem música. Creem *la nit* que els vostres convidats recordaran durant anys: so impecable, llum que acompanya cada moment i detalls que converteixen una festa en *una història.*",
+  djEye:"Música", djH:"El ritme el marca<br><em>la vostra pista</em>",
+  djP:"Llegim els convidats en temps real. Cada cançó arriba al moment just, del primer ball a l’últim tema.",
+  djEye2:"Tot inclòs",
+  djF:["So i il·luminació professional","Cerimònia, aperitiu, banquet i festa","La vostra llista, amb el nostre criteri a pista","Cabina de DJ integrada a la decoració"],
+  foEye:"Fotomatón", foH:"Records que<br><em>s’emporten a casa</em>",
+  foP:"Una càmera vintage, atrezzo i fotos impreses al moment. Sempre hi ha cua.",
+  tagCab:"Cabina vintage", tagGru:"Al moment",
+  foF:["Càmera rèflex i impressió il·limitada","Plantilla amb el vostre logo o disseny","Àlbum de signatures i totes les fotos per enllaç","Atrezzo inclòs i assistent durant el servei"],
+  rEye:"Plataforma 360", rH:"La festa,<br><em>a càmera lenta</em>",
+  rP:"Vídeos 360° dels vostres convidats, a punt per compartir abans que s’acabi la cançó.",
+  rEye2:"El vostre segell", rP2:"Vídeos en alta qualitat amb el vostre logo i la vostra música. Descàrrega al moment per QR i tots els vídeos per enllaç.",
+  xEye:"Efectes", xH:"L’instant que<br><em>tothom grava</em>",
+  xP:"Focs freds per a l’entrada, el primer ball o el pastís. Segurs en interior i espectaculars en vídeo.",
+  xEye2:"Efectes especials",
+  tagF:"Focs freds", tagC:"Ambient a pista", tagK:"Fum de colors",
+  moEye:"Moments", moH:"Hi ha instants que<br>només passen <em>una vegada.</em>",
+  endEye:"Casaments 2027", endH:"Reserveu<br><em>la vostra data</em>",
+  endP:"Les dates de primavera i estiu volen. Expliqueu-nos el vostre casament i us preparem una proposta a mida.",
+  endC:[["dj","DJ i so"],["foto","Fotomatón"],["360","Plataforma 360"],["fx","Focs freds i fum"]],
+  endB:"Demanar proposta",
+  foot:"Imatges reals dels nostres casaments",
+  manifEv:"Vosaltres gaudiu. *Nosaltres* ens ocupem de la resta: fotos impreses al moment, vídeos que es comparteixen abans que s’acabi la cançó i detalls que converteixen un casament en *un record per sempre.*",
+  heroHEv:"Moments que<br><em>es recorden</em>", heroPEv:"per al dia més especial.", y:"i",
+  sv:{dj:"DJ",foto:"fotomatón","360":"plataforma 360",fx:"efectes especials"},
+  nDJ:"Música", nFo:"Fotomatón", n36:"360", nFx:"Efectes"
+}};
+
+const $ = s => document.querySelector(s);
+/* ===== Modo según el enlace: ?m=events&s=foto,360 · #foto salta al capítulo ===== */
+const QS = new URLSearchParams(location.search);
+const EV = QS.get("m") === "events";
+const ALL = ["dj","foto","360","fx"];
+let ON = (QS.get("s") || "").split(",").map(x => x.trim()).filter(x => ALL.includes(x));
+if (!ON.length) ON = EV ? ["foto","360","fx"] : ALL.slice();
+if (EV) ON = ON.filter(x => x !== "dj");
+if (QS.get("l") === "ca") { try{ localStorage.setItem("nd_lang","ca"); }catch(_){} }
+let LANG = "es";
+try{ const q = localStorage.getItem("nd_lang"); if (q === "ca" || q === "es") LANG = q; }catch(_){}
+
+function applyLang(l){
+  LANG = l; const d = T[l];
+  document.documentElement.lang = l;
+  const ov = EV || !ON.includes("dj") ? { heroH: d.heroHEv, manif: d.manifEv } : {};
+  const nm = ON.map(k => d.sv[k]); const list = nm.length > 1 ? nm.slice(0,-1).join(", ") + " " + d.y + " " + nm[nm.length-1] : nm[0];
+  if (ov.heroH) ov.heroP = list.charAt(0).toUpperCase() + list.slice(1) + " " + d.heroPEv;
+  document.querySelectorAll("[data-t]").forEach(el => {
+    const v = ov[el.dataset.t] ?? d[el.dataset.t]; if (v == null) return;
+    if (el.classList.contains("feats")) el.innerHTML = v.map((x,i)=>`<li><span>${String(i+1).padStart(2,"0")}</span>${x}</li>`).join("");
+    else if (el.classList.contains("cards")) el.innerHTML = v.filter(([k]) => ON.includes(k)).map(([,x],i)=>`<div><b>${String(i+1).padStart(2,"0")}</b><span>${x}</span></div>`).join("");
+    else el.innerHTML = v;
+  });
+  // manifiesto palabra a palabra; *texto* = dorado
+  const parts = (ov.manif || d.manif).split(/(\*[^*]+\*)/).filter(Boolean); let html = "";
+  parts.forEach(p => { const g = p.startsWith("*"); p.replace(/\*/g,"").split(/\s+/).filter(Boolean).forEach(w => html += `<span class="w${g?" g":""}">${w}</span> `); });
+  $("#manif").innerHTML = html; WORDS = [...document.querySelectorAll("#manif .w")];
+  document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", b.dataset.l === l));
+  try{ localStorage.setItem("nd_lang", l); }catch(_){}
+  const num = {dj:"#L-dj", foto:"#L-foto", "360":"#L-360", fx:"#L-fx"};
+  ON.forEach((k,i) => { const n = document.querySelector(num[k] + " .eye .n"); if (n) n.textContent = String(i+1).padStart(2,"0"); });
+  lastS = -1; frame();
+}
+let WORDS = [];
+document.querySelectorAll(".lang button").forEach(b => b.onclick = () => applyLang(b.dataset.l));
+if (WHATSAPP){ const c = $("#cta"); c.href = "https://wa.me/" + WHATSAPP; c.hidden = false; }
+
+/* ===== Motor de escena ===== */
+const clamp = (v,a=0,b=1) => v<a?a:v>b?b:v;
+const seg = (x,a,b) => clamp((x-a)/(b-a));
+const eo = t => 1-Math.pow(1-t,3);
+const eio = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+const lerp = (a,b,t) => a+(b-a)*t;
+const lr = (A,B,t) => A.map((v,i)=>v+(B[i]-v)*t);
+const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+let W = innerWidth, H = innerHeight, PORT = H > W;
+const stage = $("#stage"), track = $("#track");
+const K = .5;          // tamaño de la tarjeta en la metamorfosis
+const RAD = 26;        // radio visible de la tarjeta
+
+// Línea de tiempo (en pantallas desplazadas)
+const LEN = { hero:2.6, dj:3.8, foto:4.2, r360:4.0, fx:4.0, mo:2.6 };
+const SC = {}; let at = 0;
+["hero","dj","foto","r360","fx","mo"].forEach(k => {
+  const on = k === "hero" || k === "mo" || ON.includes(k === "r360" ? "360" : k);
+  if (!on) { SC[k] = { a:-99, b:-98, off:true }; return; }
+  SC[k] = { a: at, b: at + LEN[k] }; at = at + LEN[k] - .2;
+});
+const END = SC.mo.b;
+if (EV) {
+  $("#mark").innerHTML = 'Noel <b>Events</b><small>Bodas</small>';
+  $("#cMark").innerHTML = 'Noel <em>Events</em>'; document.querySelector("#curtain .s").textContent = "Bodas";
+  $("#signN").textContent = "Noel Events"; $("#signS").textContent = "Fotomatón · Plataforma 360 · Lleida";
+  document.title = "Noel Events · Experiencias";
+}
+const GO = {dj:"dj", foto:"foto", "360":"r360", fx:"fx"};
+document.querySelectorAll("#chap button").forEach(b => { if (!ON.includes(b.dataset.go)) b.remove(); });
+
+function layout(){
+  W = stage.clientWidth; H = stage.clientHeight; PORT = H > W*1.05;
+  track.style.height = ((END + 1) * H) + "px";
+  const hv = $("#v-hero"), want = PORT ? "v/hero.mp4" : "v/co2.mp4";
+  if (!hv.src.endsWith(want)){ hv.poster = want.replace(".mp4",".jpg"); hv.src = want; hv.play().catch(()=>{}); }
+}
+
+function place(el, r, rad){
+  el.style.width = r[2]+"px"; el.style.height = r[3]+"px";
+  el.style.transform = `translate3d(${r[0]}px,${r[1]}px,0)`;
+  if (rad != null) el.style.borderRadius = rad+"px";
+}
+function show(el, o, y=0, sc=1){
+  el.style.opacity = o; el.style.visibility = o < .005 ? "hidden" : "visible";
+  el.style.transform = `translate3d(0,${y}px,0)` + (sc!==1?` scale(${sc})`:"");
+}
+function txWin(el, u, a, b, c, d){ // entra a→b, sale c→d
+  const i = eo(seg(u,a,b)), o = eio(seg(u,c,d));
+  show(el, i*(1-o), (1-i)*34 - o*26);
+}
+const FULL = () => [0,0,W,H];
+
+/* Metamorfosis: entrada (tarjeta → pantalla) y salida (pantalla → tarjeta) */
+function morph(L, u, len, opts={}){
+  const el = L;
+  if (u < -0.001 || u > len + 0.001){ if (el.style.visibility !== "hidden"){ el.style.visibility="hidden"; el.style.opacity=0; } return false; }
+  let s = 1, op = 1, r = 0, blur = 0;
+  if (!opts.noIn){
+    const f = eo(seg(u,0,.2)), g = eio(seg(u,.12,.62));
+    op = f; s = lerp(K,1,g); r = RAD*(1-g);
+  }
+  if (!opts.noOut){
+    const g = eio(seg(u,len-.5,len-.18)), f = seg(u,len-.22,len);
+    s *= lerp(1,K,g); r = Math.max(r, RAD*g); op *= 1 - eo(f);
+    blur = f*6;
+  }
+  el.style.visibility = "visible"; el.style.opacity = op;
+  el.style.transform = `scale(${s})`;
+  el.style.borderRadius = (r/s)+"px";
+  el.style.filter = blur>.05 ? `blur(${blur}px)` : "none";
+  return true;
+}
+
+/* Vídeos: solo se reproducen los visibles */
+const playing = new Set();
+function want(v, on){
+  if (on){
+    if (!v.src && v.dataset.src){ v.src = v.dataset.src; v.preload = "auto"; }
+    if (!playing.has(v)){ playing.add(v); const p = v.play(); p && p.catch(()=>{}); }
+  } else if (playing.has(v)){ playing.delete(v); v.pause(); }
+}
+function warm(sel){ document.querySelectorAll(sel+" video").forEach(v => { if(!v.src && v.dataset.src){ v.src=v.dataset.src; v.preload="auto"; v.load(); } }); }
+
+/* ---------- escenas ---------- */
+function hero(s){
+  const L = $("#L-hero"), u = s - SC.hero.a, len = SC.hero.b - SC.hero.a;
+  const vis = morph(L, u, len, {noIn:true});
+  want($("#v-hero"), vis);
+  if (!vis) return;
+  place($("#b-hero"), FULL(), 0);
+  const t = eo(seg(u,0,.7));
+  show($("#t-hero"), 1-t, -t*60, 1+t*.03);
+  $("#cue").style.opacity = 1 - seg(u,0,.25);
+  $("#d-hero").style.opacity = .72*eio(seg(u,.25,.8));
+  $("#b-hero").querySelector("video").style.transform = `scale(${1+.12*seg(u,0,len)})`;
+  const m = $("#t-manif");
+  const mi = eo(seg(u,.45,.8)), mo = eio(seg(u,1.95,2.2));
+  show(m, mi*(1-mo), (1-mi)*30 - mo*20);
+  const n = WORDS.length, w = seg(u,.6,1.85);
+  WORDS.forEach((el,i) => { el.style.opacity = .14 + .86*clamp(w*n*1.15 - i*1.0); });
+}
+
+function dj(s){
+  const L = $("#L-dj"), u = s - SC.dj.a, len = SC.dj.b - SC.dj.a;
+  const vs = L.querySelectorAll("video");
+  const vis = morph(L, u, len);
+  const x = eio(seg(u,1.75,2.15));
+  want(vs[0], vis && x < 1); want(vs[1], vis && x > 0);
+  if (!vis) return;
+  place($("#b-dj"), FULL(), 0);
+  vs[1].style.opacity = x;
+  vs[0].style.transform = `scale(${1.08 - .08*seg(u,0,2.2)})`;
+  vs[1].style.transform = `scale(${1 + .06*seg(u,1.8,len)})`;
+  txWin($("#t-dj1"), u, .55, 1.0, 1.45, 1.75);
+  txWin($("#t-dj2"), u, 2.05, 2.5, 3.2, 3.5);
+}
+
+function cardsTwo(){
+  let w, h;
+  if (PORT){ w = Math.min(W*.43, (H*.56)*9/16); h = w*16/9; }
+  else { h = H*.66; w = h*9/16; }
+  const gap = PORT ? W*.04 : Math.max(26, W*.025);
+  const top = PORT ? (H*.44 - h/2) : (H*.46 - h/2);
+  const cx = PORT ? W/2 : W*.62;
+  return [[cx - gap/2 - w, top, w, h],[cx + gap/2, top, w, h]];
+}
+function foto(s){
+  const L = $("#L-foto"), u = s - SC.foto.a, len = SC.foto.b - SC.foto.a;
+  const A = $("#b-fa"), B = $("#b-fb");
+  const vis = morph(L, u, len);
+  const g = eio(seg(u,1.8,2.55));
+  want(A.querySelector("video"), vis); want(B.querySelector("video"), vis && g > 0);
+  if (!vis) return;
+  const [cA, cB] = cardsTwo();
+  const offB = [W + 20, cB[1] + 60, cB[2], cB[3]];
+  place(A, lr(FULL(), cA, g), 18*g);
+  place(B, lr(offB, cB, eo(seg(u,1.9,2.7))), 18);
+  B.style.visibility = g > 0 ? "visible" : "hidden";
+  L.classList.toggle("flat", g > 0);
+  $("#s-foto").style.opacity = 1 - g*.55;
+  const tg = eo(seg(u,2.55,2.9))*(1-seg(u,len-.6,len-.3));
+  A.querySelector(".tag").style.opacity = tg; B.querySelector(".tag").style.opacity = tg;
+  A.querySelector("video").style.transform = `scale(${1.06 - .06*seg(u,0,1.8)})`;
+  txWin($("#t-f1"), u, .55, 1.0, 1.45, 1.75);
+  txWin($("#t-f2"), u, 2.6, 3.0, 3.5, 3.75);
+}
+
+function r360(s){
+  const L = $("#L-360"), u = s - SC.r360.a, len = SC.r360.b - SC.r360.a;
+  const B1 = $("#b-r1"), B2 = $("#b-r2"), B3 = $("#b-r3");
+  const vis = morph(L, u, len);
+  const g = eio(seg(u,1.8,2.5));
+  const sh = eio(seg(u,2.75,3.35));         // giro del carrusel
+  want(B2.querySelector("video"), vis);
+  want(B1.querySelector("video"), vis && g > 0 && sh < 1);
+  want(B3.querySelector("video"), vis && g > 0);
+  if (!vis) return;
+  L.classList.toggle("flat", g > 0);
+  let ph = PORT ? Math.min(H*.6, W*.6*16/9) : H*.7, pw = ph*9/16;
+  const space = PORT ? pw*.92 : pw*.98;
+  const cy = PORT ? H*.47 : H*.5;
+  const slot = pos => {
+    const a = Math.min(Math.abs(pos), 1.6), sc = 1 - .2*Math.min(a,1);
+    const w = pw*sc, h = ph*sc, cx = W/2 + pos*space;
+    return { r:[cx - w/2, cy - h/2, w, h], rot: clamp(-pos,-1.6,1.6)*20, dim: .55*Math.min(a,1), z: 10 - Math.round(a*3) };
+  };
+  [[B1,-1],[B2,0],[B3,1]].forEach(([el,p0]) => {
+    const st = slot(p0 - sh);
+    let r = st.r, rot = st.rot*g, dim = st.dim*g;
+    if (el === B2) r = lr(FULL(), st.r, g);
+    else { const from = [W/2 + (p0)*W*.9 - st.r[2]/2, st.r[1], st.r[2], st.r[3]]; r = lr(from, st.r, eo(seg(u,1.9,2.6))); }
+    place(el, r, 22*g);
+    el.style.transform += ` perspective(1400px) rotateY(${rot}deg)`;
+    el.style.zIndex = st.z;
+    el.style.visibility = (el === B2 || g > 0) ? "visible" : "hidden";
+    el.querySelector(".dim").style.opacity = dim;
+  });
+  $("#s-360").style.opacity = 1 - g*.5;
+  B2.querySelector("video").style.transform = `scale(${1.05 - .05*seg(u,0,1.8)})`;
+  txWin($("#t-r1"), u, .55, 1.0, 1.45, 1.75);
+  txWin($("#t-r2"), u, 2.45, 2.8, 3.4, 3.65);
+}
+
+function tiles(){
+  const m = PORT ? 16 : Math.max(28, W*.05), g = PORT ? 12 : 16;
+  const top = (PORT ? 122 : 136), bot = PORT ? 108 : 84;
+  if (PORT){
+    const aw = W - 2*m, ah = H - top - bot;
+    let h = Math.min(aw*9/16, (ah - 2*g)/3), w = aw;
+    const y0 = top + (ah - (3*h + 2*g))/2;
+    return [[m,y0,w,h],[m,y0+h+g,w,h],[m,y0+2*(h+g),w,h]];
+  }
+  const aw = W - 2*m, ah = H - top - bot;
+  const bw = (aw - g)*.62, sw = aw - g - bw, sh = (ah - g)/2;
+  return [[m,top,bw,ah],[m+bw+g,top,sw,sh],[m+bw+g,top+sh+g,sw,sh]];
+}
+function fx(s){
+  const L = $("#L-fx"), u = s - SC.fx.a, len = SC.fx.b - SC.fx.a;
+  const X = [$("#b-x1"),$("#b-x2"),$("#b-x3")];
+  const vis = morph(L, u, len);
+  const g = eio(seg(u,1.8,2.5));
+  want(X[0].querySelector("video"), vis); want(X[1].querySelector("video"), vis && g > 0); want(X[2].querySelector("video"), vis && g > 0);
+  if (!vis) return;
+  L.classList.toggle("flat", g > 0);
+  const tl = tiles();
+  place(X[0], lr(FULL(), tl[0], g), 18*g);
+  [1,2].forEach(i => {
+    const t = eo(seg(u, 1.95 + i*.12, 2.6 + i*.12)), c = tl[i];
+    const from = [c[0] + c[2]/2, c[1] + c[3]/2, 0, 0];
+    place(X[i], lr(from, c, t), 18);
+    X[i].style.visibility = t > 0 ? "visible" : "hidden";
+  });
+  const tg = eo(seg(u,2.55,2.95))*(1-seg(u,len-.6,len-.3));
+  X.forEach(x => x.querySelector(".tag").style.opacity = tg);
+  $("#s-fx").style.opacity = 1 - g*.6;
+  X[0].querySelector("video").style.transform = `scale(${1.06 - .06*seg(u,0,1.8)})`;
+  txWin($("#t-x1"), u, .55, 1.0, 1.45, 1.75);
+  txWin($("#t-x2"), u, 2.4, 2.75, 3.4, 3.6);
+}
+
+function mo(s){
+  const L = $("#L-mo"), u = s - SC.mo.a, len = SC.mo.b - SC.mo.a;
+  const vis = morph(L, u, len + 5, {noOut:true});
+  if (!vis) return;
+  place($("#b-mo"), FULL(), 0);
+  $("#i-mo").style.transform = RM ? "none" : `scale(${1.18 - .18*eo(seg(u,0,len))}) translateY(${(1-seg(u,0,len))*-2}%)`;
+  $("#i-mo").style.objectPosition = PORT ? "50% 30%" : "50% 40%";
+  $("#d-mo").style.opacity = .45*eo(seg(u,.6,1.1));
+  const i = eo(seg(u,.7,1.2)); show($("#t-mo"), i, (1-i)*30);
+}
+
+/* ---------- bucle ---------- */
+let lastS = -1, ticking = false;
+const chap = $("#chap"), prog = $("#prog");
+function frame(){
+  ticking = false;
+  const s = Math.max(0, -track.getBoundingClientRect().top / H);
+  if (Math.abs(s - lastS) < 0.0004) return; lastS = s;
+  hero(s); dj(s); foto(s); r360(s); fx(s); mo(s);
+  prog.style.transform = `scaleX(${clamp(s/END)})`;
+  chap.classList.toggle("on", s > SC.hero.b - .2 && s < SC.mo.a + .2);
+  let cur = ON[0]; ON.forEach(k => { if (s >= SC[GO[k]].a + .3) cur = k; });
+  chap.querySelectorAll("button").forEach(b => b.classList.toggle("act", b.dataset.go === cur));
+  // precarga de la siguiente escena
+  [["dj","#L-dj"],["foto","#L-foto"],["r360","#L-360"],["fx","#L-fx"]].forEach(([k,sel]) => { if (!SC[k].off && s > SC[k].a - 1.6) warm(sel); });
+}
+const req = () => { if (!ticking){ ticking = true; requestAnimationFrame(frame); } };
+addEventListener("scroll", req, {passive:true});
+let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { const s = lastS; layout(); scrollTo(0, track.offsetTop + s*H); lastS=-1; frame(); }, 120); });
+
+chap.querySelectorAll("button").forEach(b => b.onclick = () => {
+  const k = GO[b.dataset.go];
+  scrollTo({ top: track.offsetTop + (SC[k].a + 1.0) * H, behavior: RM ? "auto" : "smooth" });
+});
+document.querySelector(".mark").onclick = e => { e.preventDefault(); scrollTo({top:0, behavior:"smooth"}); };
+
+layout(); applyLang(LANG);
+const hv = $("#v-hero");
+const lift = () => { $("#curtain").classList.add("up"); setTimeout(()=>{$("#curtain").style.display="none"}, 1300); };
+let lifted = false; const go = () => { if (!lifted){ lifted = true; setTimeout(lift, 900); } };
+hv.addEventListener("canplay", go, {once:true}); setTimeout(go, 2200);
+setTimeout(() => { const f = ON[0]; warm({dj:"#L-dj",foto:"#L-foto","360":"#L-360",fx:"#L-fx"}[f]); }, 2500);
+// Enlace directo a un capítulo (#foto, #360…)
+const H0 = decodeURIComponent(location.hash.slice(1));
+if (ON.includes(H0)) { lifted = true; $("#curtain").style.display = "none"; requestAnimationFrame(() => { scrollTo(0, track.offsetTop + (SC[GO[H0]].a + 1.0) * H); lastS = -1; frame(); }); }
+</script>
+</body>
+</html>

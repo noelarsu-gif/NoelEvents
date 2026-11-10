@@ -446,7 +446,20 @@ const CAT_DEFAULT = { tarifas: [
   { id: "general", nombre: "General", precios: { ...CAT_BASE } },
   { id: "carme", nombre: "Hostal del Carme", precios: { ...CAT_BASE, dj:550, packDjFoto:850, packDj360:950, packCompleto:1290 } },
   TORRENS ], v: 3 };
-const DOSSIER_DEF = "https://drive.google.com/drive/folders/1Y12ArM-ZZsHUgZzgyPQsDZK2lXC7IIQ_?usp=drive_link";
+const DOSSIER_DEF = "https://noelarsu-gif.github.io/NoelEvents/dossier/";
+const DOSSIER_OLD = "https://drive.google.com/drive/folders/1Y12ArM-ZZsHUgZzgyPQsDZK2lXC7IIQ_?usp=drive_link";
+const dossierBase = () => { const d = S.cats && S.cats.dossier; return (d === undefined || d === DOSSIER_OLD) ? DOSSIER_DEF : d; };
+// Enlace a la web de ejemplos con la marca y los servicios de la tarifa (y el capítulo, si se indica)
+function dossierLink(base, t, cap){
+  if (!base) return "";
+  if (!base.startsWith(DOSSIER_DEF)) return base;
+  const sv = { ...SERV_ALL, ...(t.servicios || {}) }, q = new URLSearchParams();
+  if (t.marca === "events") q.set("m", "events");
+  const list = [sv.dj && t.marca !== "events" && "dj", sv.foto && "foto", sv.p360 && "360", (sv.fuego || sv.humo) && "fx"].filter(Boolean);
+  if (list.length < 4) q.set("s", list.join(","));
+  const qs = q.toString();
+  return DOSSIER_DEF + (qs ? "?" + qs : "") + (cap && list.includes(cap) ? "#" + cap : "");
+}
 const catFile = t => (t && t.marca === "events") ? "Catalogo Noel Events 2027.pdf" : "Catalogo Noel DJ 2027.pdf";
 const catFmt = n => Math.round(num(n)).toLocaleString("es-ES", { useGrouping: "always" });
 const catCache = {};
@@ -524,23 +537,52 @@ async function buildCatalog(t, dossier){
         for (const c of "€" + sp.suffix) { const b = ink(ctx, c); ctx.fillText(c, x - b.l, base); x += (b.r - b.l) + sp.track; }
       }
     });
-    // Botón "Ver fotos y vídeos reales" en las páginas de fotomatón y 360
-    const conEnlace = dossier && (pg === 3 || pg === 4);
-    const BX = 216, BY = 2786, BH = 104, BTXT = pg === 3 ? "VER FOTOS REALES  →" : "VER VÍDEOS REALES  →";
-    ctx.font = "600 31px Montserrat"; const BW = Math.round(trackW(ctx, BTXT, 5) + 88);
-    if (conEnlace) {
-      ctx.strokeStyle = "rgb(201,169,97)"; ctx.lineWidth = 3; ctx.strokeRect(BX, BY, BW, BH);
-      ctx.fillStyle = "rgb(201,169,97)"; ctx.textBaseline = "middle";
-      track(ctx, BX + 44, BY + BH / 2 + 2, BTXT, 5); ctx.textBaseline = "alphabetic";
+    // Web de ejemplos en vídeo: foto de la presentación, botones en fotomatón y 360, y banner en la página de packs
+    const enlaces = [];
+    if (dossier) {
+      await Promise.all(['italic 500 100px "Cormorant Garamond"', '600 40px Montserrat'].map(f => document.fonts.load(f).catch(()=>{})));
+      const GOLD = "rgb(201,169,97)", DARK = "rgb(20,17,11)";
+      const play = (cx, cy, r, ring, fill, tri) => {
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = fill; ctx.fill();
+        if (ring) { ctx.lineWidth = 5; ctx.strokeStyle = ring; ctx.stroke(); }
+        const a = r * .42; ctx.beginPath(); ctx.moveTo(cx - a * .62, cy - a); ctx.lineTo(cx + a, cy); ctx.lineTo(cx - a * .62, cy + a); ctx.closePath(); ctx.fillStyle = tri; ctx.fill();
+      };
+      if (pg === 1) {
+        const [x, y, w, h] = [216, 1477, 1949, 819];
+        const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, "rgba(8,7,5,.10)"); g.addColorStop(1, "rgba(8,7,5,.62)");
+        ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
+        play(x + w / 2, y + h / 2 - 40, 132, GOLD, "rgba(11,10,8,.55)", GOLD);
+        ctx.font = "600 31px Montserrat"; ctx.fillStyle = "rgb(243,238,228)"; const tx = "VER BODAS REALES EN VÍDEO";
+        track(ctx, x + w / 2 - trackW(ctx, tx, 7) / 2, y + h / 2 + 170, tx, 7);
+        enlaces.push([x, y, w, h, dossierLink(dossier, t)]);
+      }
+      if (pg === 3 || pg === 4) {
+        const BX = 216, BY = 2770, BH = 120, BTXT = pg === 3 ? "VER EL FOTOMATÓN EN VÍDEO" : "VER LA PLATAFORMA 360 EN VÍDEO";
+        ctx.font = "600 31px Montserrat"; const BW = Math.round(trackW(ctx, BTXT, 5) + 88 + 70);
+        const g = ctx.createLinearGradient(BX, 0, BX + BW, 0); g.addColorStop(0, "rgb(226,200,138)"); g.addColorStop(1, GOLD);
+        ctx.fillStyle = g; ctx.fillRect(BX, BY, BW, BH);
+        play(BX + 62, BY + BH / 2, 26, null, DARK, "rgb(226,200,138)");
+        ctx.fillStyle = DARK; ctx.textBaseline = "middle"; track(ctx, BX + 112, BY + BH / 2 + 2, BTXT, 5); ctx.textBaseline = "alphabetic";
+        enlaces.push([BX, BY, BW, BH, dossierLink(dossier, t, pg === 3 ? "foto" : "360")]);
+      }
+      if (pg === 8) {
+        const [x, y, w, h] = [216, 2262, 1949, 300];
+        const g = ctx.createLinearGradient(x, y, x + w, y + h); g.addColorStop(0, "rgb(232,208,150)"); g.addColorStop(.55, GOLD); g.addColorStop(1, "rgb(176,142,72)");
+        ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
+        ctx.font = "600 27px Montserrat"; ctx.fillStyle = DARK; track(ctx, x + 84, y + 92, "NUEVO · BODAS REALES EN VÍDEO", 7);
+        ctx.font = 'italic 500 84px "Cormorant Garamond"'; ctx.fillText("Vivid la experiencia antes del gran día", x + 80, y + 205);
+        play(x + w - 150, y + h / 2, 82, null, DARK, "rgb(232,208,150)");
+        enlaces.push([x, y, w, h, dossierLink(dossier, t)]);
+      }
     }
     if (n++) pdf.addPage("a4");
     pdf.addImage(cv.toDataURL("image/jpeg", 0.86), "JPEG", 0, 0, 595.28, 841.89);
-    if (conEnlace) { const k = 595.28 / cv.width; pdf.link(BX * k, BY * k, BW * k, BH * k, { url: dossier }); }
+    { const k = 595.28 / cv.width; enlaces.forEach(([x, y, w, h, url]) => url && pdf.link(x * k, y * k, w * k, h * k, { url })); }
   }
   pdf.setProperties(t.marca === "events" ? { title: "Catálogo Noel Events 2027", author: "Noel Events" } : { title: "Catálogo Noel DJ 2027", author: "Noel DJ · Music & Events" });
   return pdf.output("blob");
 }
-const catKey = t => JSON.stringify([t.precios, t.servicios || null, t.marca || "dj", S.cats && S.cats.dossier]);
+const catKey = t => JSON.stringify([t.precios, t.servicios || null, t.marca || "dj", dossierBase(), 2]);
 function catPanel(){
   const ts = (S.cats || CAT_DEFAULT).tarifas;
   const resumen = t => { const sv = { ...SERV_ALL, ...(t.servicios || {}) }; const on = CAT_SERV.filter(([k]) => sv[k]); return on.length === CAT_SERV.length ? "Todos los servicios" : on.map(([, l]) => l.replace(/ \(.*\)/, "")).join(" · "); };
@@ -558,7 +600,7 @@ function campoVisible(k, t){ const sv = { ...SERV_ALL, ...(t.servicios || {}) };
 function catEditorBody(c){
   return `<form id="catForm" class="stack" autocomplete="off" onsubmit="return false">
   <p class="sub" style="margin:0;line-height:1.55">Cambia los precios y la app genera el catálogo con el mismo diseño. El nombre de cada tarifa solo lo ves tú.</p>
-  <label class="f"><span>Enlace a ejemplos reales (botón en las páginas de fotomatón y 360)</span><input id="catDossier" type="url" inputmode="url" value="${esc(c.dossier !== undefined ? c.dossier : DOSSIER_DEF)}" placeholder="https://…"></label>
+  <label class="f"><span>Web de bodas reales en vídeo (enlace destacado en el catálogo)</span><input id="catDossier" type="url" inputmode="url" value="${esc(c.dossier === undefined || c.dossier === DOSSIER_OLD ? DOSSIER_DEF : c.dossier)}" placeholder="https://…"></label>
   ${c.tarifas.map((t, i) => `<div class="fs"><div class="lt">${esc(t.nombre) || "Tarifa nueva"}</div>
     <label class="f"><span>Nombre interno</span><input id="ct${i}n" data-t="${i}.nombre" value="${esc(t.nombre)}"></label>
     <label class="f"><span>Marca en la portada y en el archivo</span><select id="ct${i}m" data-t="${i}.marca"><option value="dj" ${t.marca !== "events" ? "selected" : ""}>Noel DJ · Music &amp; Events</option><option value="events" ${t.marca === "events" ? "selected" : ""}>Noel Events</option></select></label>
@@ -1376,7 +1418,7 @@ document.addEventListener("click", async ev => {
       const c = catCache[t.id];
       if (c && c.key === catKey(t)) { await saveFile(catFile(t), c.blob, "Catálogo descargado.", true); break; }
       a.disabled = true; a.innerHTML = "Generando…";
-      try { const blob = await buildCatalog(t, (S.cats && S.cats.dossier !== undefined) ? S.cats.dossier : DOSSIER_DEF); catCache[t.id] = { key: catKey(t), blob }; toast("Catálogo listo. Pulsa “Compartir”."); }
+      try { const blob = await buildCatalog(t, dossierBase()); catCache[t.id] = { key: catKey(t), blob }; toast("Catálogo listo. Pulsa “Compartir”."); }
       catch(err){ console.log("[NoelEvents] catálogo", err); toast("No se ha podido generar el catálogo. Comprueba la conexión."); }
       render(false); break; }
     case "catedit": openCatEditor(); break;
@@ -1384,7 +1426,7 @@ document.addEventListener("click", async ev => {
     case "catdup": { const c = collectCat(); const o = c.tarifas[+a.dataset.i]; c.tarifas.splice(+a.dataset.i + 1, 0, { id: uid(), nombre: o.nombre + " (copia)", marca: o.marca || "dj", servicios: { ...SERV_ALL, ...(o.servicios || {}) }, precios: { ...o.precios } }); rerenderCat(c); } break;
     case "catdel": { const c = collectCat(); c.tarifas.splice(+a.dataset.i, 1); rerenderCat(c); } break;
     case "catsave": { const c = collectCat();
-      c.v = 3; if (c.dossier === undefined) c.dossier = DOSSIER_DEF; c.tarifas = c.tarifas.map(t => ({ id: t.id, nombre: String(t.nombre||"").trim() || "Tarifa", marca: t.marca === "events" ? "events" : "dj", servicios: { ...SERV_ALL, ...(t.servicios || {}) }, precios: Object.fromEntries(CAT_FIELDS.map(([k]) => [k, Math.max(0, Math.round(num(t.precios[k])))])) }));
+      c.v = 3; if (c.dossier === undefined || c.dossier === DOSSIER_OLD) c.dossier = DOSSIER_DEF; c.tarifas = c.tarifas.map(t => ({ id: t.id, nombre: String(t.nombre||"").trim() || "Tarifa", marca: t.marca === "events" ? "events" : "dj", servicios: { ...SERV_ALL, ...(t.servicios || {}) }, precios: Object.fromEntries(CAT_FIELDS.map(([k]) => [k, Math.max(0, Math.round(num(t.precios[k])))])) }));
       S.cats = c; if (S.db) write(S.db.doc("config/catalogos").set(c), "guardar los catálogos"); closeSheet(); render(false); buzz(); toast("Catálogos guardados"); } break;
     case "copywa": copyText(waText(S.events.find(x=>x.id===id))); break;
     case "edit": openEditor(id); break;
