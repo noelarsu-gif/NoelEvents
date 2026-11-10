@@ -983,8 +983,8 @@ function vAjustes(){
     ${(c.catalogo||[]).map((s,i)=>`<div class="line l2"><input id="k${i}a" data-c="catalogo.${i}.nombre" value="${esc(s.nombre)}" aria-label="Servicio"><input id="k${i}b" data-c="catalogo.${i}.precio" inputmode="decimal" value="${esc(s.precio)}" aria-label="Precio"><button type="button" class="x tap" data-act="cfgdel" data-k="catalogo" data-i="${i}" aria-label="Quitar">${I.x}</button></div>`).join("")}
     <button type="button" class="btn sm ghost tap" data-act="cfgadd" data-k="catalogo">${I.plus} Añadir servicio</button></div>
   <div class="fs"><div class="lt">Días bloqueados (familia)</div>
-    <p class="sub" style="margin:0">Formato MM-DD para que se repita cada año, o AAAA-MM-DD para un día concreto.</p>
-    ${(c.bloqueos||[]).map((b,i)=>`<div class="line l2" style="grid-template-columns:110px minmax(0,1fr) 44px"><input id="b${i}a" data-c="bloqueos.${i}.fecha" value="${esc(b.fecha)}" aria-label="Fecha" placeholder="03-15"><input id="b${i}b" data-c="bloqueos.${i}.motivo" value="${esc(b.motivo)}" aria-label="Motivo"><button type="button" class="x tap" data-act="cfgdel" data-k="bloqueos" data-i="${i}" aria-label="Quitar">${I.x}</button></div>`).join("")}
+    <p class="sub" style="margin:0">Formato DD-MM para que se repita cada año (ej. 15-03), o DD-MM-AAAA para un día concreto.</p>
+    ${(c.bloqueos||[]).map((b,i)=>`<div class="line l2" style="grid-template-columns:110px minmax(0,1fr) 44px"><input id="b${i}a" data-c="bloqueos.${i}.fecha" value="${esc(fechaBloqVer(b.fecha))}" inputmode="numeric" aria-label="Fecha (DD-MM)" placeholder="15-03"><input id="b${i}b" data-c="bloqueos.${i}.motivo" value="${esc(b.motivo)}" aria-label="Motivo"><button type="button" class="x tap" data-act="cfgdel" data-k="bloqueos" data-i="${i}" aria-label="Quitar">${I.x}</button></div>`).join("")}
     <button type="button" class="btn sm ghost tap" data-act="cfgadd" data-k="bloqueos">${I.plus} Añadir día</button></div>
   <div class="fs"><div class="lt">Compañeros para derivar</div>
     ${(c.companeros||[]).map((p,i)=>`<div class="line" style="grid-template-columns:minmax(0,1fr) 44px"><input id="p${i}" data-c="companeros.${i}" value="${esc(p)}" aria-label="Compañero"><button type="button" class="x tap" data-act="cfgdel" data-k="companeros" data-i="${i}" aria-label="Quitar">${I.x}</button></div>`).join("")}
@@ -1022,7 +1022,17 @@ function vAjustes(){
     <button class="btn ghost tap" data-act="logout">${S.demo ? "Salir de la demo" : "Cerrar sesión"}</button></div>`;
 }
 function setPath(obj, path, val){ const k = path.split("."); let o = obj; for (let i=0;i<k.length-1;i++){ o = o[isNaN(k[i]) ? k[i] : +k[i]]; } o[isNaN(k.at(-1)) ? k.at(-1) : +k.at(-1)] = val; }
-function collectCfg(){ const c = clone(S.cfg); document.querySelectorAll("#cfgForm [data-c]").forEach(el => setPath(c, el.dataset.c, el.value)); return c; }
+// Días bloqueados: se guardan como MM-DD / AAAA-MM-DD, pero se ven y se escriben en español (DD-MM / DD-MM-AAAA)
+function fechaBloqVer(f){ const v = String(f||""); let m;
+  if ((m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/))) return `${m[3]}-${m[2]}-${m[1]}`;
+  if ((m = v.match(/^(\d{2})-(\d{2})$/))) return `${m[2]}-${m[1]}`;
+  return v; }
+function fechaBloqGuardar(f){ const v = String(f||"").trim().replace(/[\/.\s]+/g, "-"); let m; const p2 = x => String(x).padStart(2, "0");
+  if ((m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))) return `${m[1]}-${p2(m[2])}-${p2(m[3])}`;
+  if ((m = v.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/))) return `${m[3]}-${p2(m[2])}-${p2(m[1])}`;
+  if ((m = v.match(/^(\d{1,2})-(\d{1,2})$/))) return `${p2(m[2])}-${p2(m[1])}`;
+  return v; }
+function collectCfg(){ const c = clone(S.cfg); document.querySelectorAll("#cfgForm [data-c]").forEach(el => setPath(c, el.dataset.c, /^bloqueos\.\d+\.fecha$/.test(el.dataset.c) ? fechaBloqGuardar(el.value) : el.value)); return c; }
 
 /* ============ Hojas (sheet) ============ */
 function openSheet(title, body, foot){
