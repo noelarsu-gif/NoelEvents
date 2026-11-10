@@ -1749,7 +1749,7 @@ function demoSeed(){
   ];
   const seed = Object.fromEntries(ev);
   seed["config/ajustes"] = { nominas: [], costes: { ayudante: 120, album: 15, impresion: 13 },
-    catalogo: [{ nombre: "DJ", precio: 650 }, { nombre: "Fotomatón", precio: 350 }, { nombre: "Plataforma 360", precio: 450 }, { nombre: "Fuegos fríos", precio: 190 }, { nombre: "Pack DJ + fotomatón", precio: 950 }, { nombre: "Pack DJ + 360", precio: 1050 }, { nombre: "Pack completo", precio: 1350 }],
+    catalogo: [{ nombre: "DJ", precio: 650 }, { nombre: "Fotomatón", precio: 350 }, { nombre: "Plataforma 360", precio: 450 }, { nombre: "Fuegos fríos", precio: 190 }, { nombre: "Humo de colores", precio: 490 }, { nombre: "Pack DJ + fotomatón", precio: 950 }, { nombre: "Pack DJ + 360", precio: 1050 }, { nombre: "Pack completo", precio: 1350 }],
     bloqueos: [{ fecha: "08-15", motivo: "Vacaciones en familia" }], companeros: ["Compañero"],
     contacto: { firma: "Tu nombre · Tu empresa", telefono: "600 000 000", instagram: "@tuempresa" }, horasExtra: { antelacion: 70, mismoDia: 100 } };
   return seed;
@@ -1799,7 +1799,14 @@ function startData(){
   S.db.collection("usuarios").onSnapshot(snap => { S.users = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => String(a.nombre).localeCompare(String(b.nombre))); if (S.tab === "ajustes" && !(document.activeElement && document.activeElement.closest && document.activeElement.closest("#cfgForm"))) render(false); }, () => {});
   S.db.doc("config/catalogos").onSnapshot(snap => { if (snap.exists) { const c = snap.data(); if (c && Array.isArray(c.tarifas) && c.tarifas.length) { S.cats = c; if ((c.v || 1) < 3) { const m = clone(c); m.v = 3; if (!m.tarifas.some(t => t.id === "torrens")) m.tarifas.push(clone(TORRENS)); m.tarifas.forEach(t => { if (t.id === "torrens" && !t.marca) t.marca = "events"; }); S.cats = m; write(S.db.doc("config/catalogos").set(m), "actualizar los catálogos"); } } } if (S.tab === "inicio" && !S.sheetMode) render(false); }, () => {});
   S.db.doc("config/ajustes").onSnapshot(snap => {
-    if (snap.exists) { const c = snap.data(); S.cfg = Object.assign(clone(DEFAULT_CFG), clone(c)); S.cfg.costes = Object.assign({}, DEFAULT_CFG.costes, c.costes||{}); S.cfg.contacto = Object.assign({}, DEFAULT_CFG.contacto, c.contacto||{}); S.cfg.horasExtra = Object.assign({}, DEFAULT_CFG.horasExtra, c.horasExtra||{}); }
+    if (snap.exists) { const c = snap.data(); S.cfg = Object.assign(clone(DEFAULT_CFG), clone(c)); S.cfg.costes = Object.assign({}, DEFAULT_CFG.costes, c.costes||{}); S.cfg.contacto = Object.assign({}, DEFAULT_CFG.contacto, c.contacto||{}); S.cfg.horasExtra = Object.assign({}, DEFAULT_CFG.horasExtra, c.horasExtra||{});
+      // Una sola vez: añadir "Humo de colores" a los servicios rápidos (si luego lo quitas, no vuelve)
+      if (!c.humoAnadido && !S.demo) {
+        const cat = (S.cfg.catalogo || []).slice();
+        if (!cat.some(x => /humo|fum/i.test(x.nombre))) { const i = cat.findIndex(x => /fuego/i.test(x.nombre)); cat.splice(i >= 0 ? i + 1 : cat.length, 0, { nombre: "Humo de colores", precio: 490 }); }
+        write(S.db.doc("config/ajustes").update({ catalogo: cat, humoAnadido: true }), "añadir el humo de colores");
+        S.cfg.catalogo = cat;
+      } }
     if (S.tab === "ajustes" && document.activeElement && document.activeElement.closest && document.activeElement.closest("#cfgForm")) return;
     if (S.sheetMode !== "edit") render(false);
   }, () => {});
