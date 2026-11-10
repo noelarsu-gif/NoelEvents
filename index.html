@@ -1151,7 +1151,8 @@ function collectEdit(){
     setPath(e, p, v);
   });
 }
-function rerenderEditor(){ collectEdit(); const sb = $("#sheetBody"), st = sb.scrollTop; sb.innerHTML = editorBody(S.editing); sb.scrollTop = st; }
+// Ojo: quien llama ya ha leído el formulario (collectEdit) antes de cambiar los datos; volver a leerlo aquí pisaría el cambio
+function rerenderEditor(){ const sb = $("#sheetBody"), st = sb.scrollTop; sb.innerHTML = editorBody(S.editing); sb.scrollTop = st; }
 function cleanEvent(e){
   const o = clone(e);
   o.servicios = (o.servicios||[]).filter(s=>s.nombre||num(s.precio)).map(s=>({nombre:String(s.nombre||"").trim(), precio:num(s.precio)}));
@@ -1486,7 +1487,7 @@ document.addEventListener("click", async ev => {
 });
 document.addEventListener("change", ev => {
   if (ev.target.matches('#catForm input[type="checkbox"][data-t*=".servicios."]')) { rerenderCat(collectCat()); return; }
-  if (ev.target.matches("#evForm [data-rerender]")) rerenderEditor();
+  if (ev.target.matches("#evForm [data-rerender]")) { collectEdit(); rerenderEditor(); }
   if (ev.target.id === "restore" && ev.target.files[0]) restore(ev.target.files[0]);
 });
 document.addEventListener("input", ev => { if (ev.target.id === "q") { S.q = ev.target.value; const pos = ev.target.selectionStart; render(false); const q = $("#q"); q.focus(); try { q.setSelectionRange(pos,pos); } catch(_){} } });
