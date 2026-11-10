@@ -1277,13 +1277,16 @@ const COND = {
     ["Fuerza mayor","Si por enfermedad o una causa grave no pudiéramos asistir a la boda, os garantizamos un sustituto de nivel equivalente o la devolución íntegra del importe pagado."]]
 };
 function svcInfo(name, lang){
-  const n = (name||"").toLowerCase(); const out = [];
+  let n = (name||"").toLowerCase(); const out = [];
+  // "Pack completo" = DJ + fotomatón + 360 (siempre con las tres páginas de detalle)
+  if (/complet/.test(n)) n += " dj fotomatón 360";
   const hrs = (n.match(/(\d+)\s*h/)||[])[1]; const fiesta = /fiesta|festa/.test(n);
   if (/dj/.test(n)) out.push(lang==="ca" ? ["DJ","La banda sonora de tot el vostre dia.",[fiesta||hrs ? `Festa i ball${hrs?" · "+hrs+" h":""} · ampliable` : "Cerimònia, còctel, banquet i 3 h de ball · ampliable","Equip de so d’alta qualitat · il·luminació professional","Cabina il·luminada, sense cables a la vista","Selecció musical plegats + peticions en directe"]]
     : ["DJ","La banda sonora de todo vuestro día.",[fiesta||hrs ? `Fiesta y baile${hrs?" · "+hrs+" h":""} · ampliable` : "Ceremonia, cóctel, banquete y 3 h de baile · ampliable","Equipo de sonido de alta calidad · iluminación profesional","Cabina iluminada, sin cables a la vista","Selección musical juntos + peticiones en directo"]]);
   if (/fotomat|photo/.test(n)) out.push(lang==="ca" ? ["Fotomatón","Records per emportar-se a casa.",["Fotos impreses a l’instant","Atrezzo per als convidats","Àlbum de record amb fotos i dedicatòries","Assistent durant tot el servei"]] : ["Fotomatón","Recuerdos para llevarse a casa.",["Fotos impresas al instante","Atrezzo para los invitados","Álbum de recuerdo con fotos y dedicatorias","Asistente durante todo el servicio"]]);
   if (/360/.test(n)) out.push(lang==="ca" ? ["Plataforma 360","El moment més compartit de la nit.",["Vídeos a càmera lenta en 360°","Vídeos compartits amb els convidats al núvol","Muntatge inclòs"]] : ["Plataforma 360","El momento más compartido de la noche.",["Vídeos a cámara lenta en 360°","Vídeos compartidos con los invitados en la nube","Montaje incluido"]]);
   if (/fuego|foc|chispa|spark/.test(n)) out.push(lang==="ca" ? ["Focs freds","Un moment màgic per a l’entrada o el primer ball.",["Efecte d’espurnes fredes","Muntatge i operació inclosos"]] : ["Fuegos fríos","Un momento mágico para la entrada o el primer baile.",["Efecto de chispas frías","Montaje y operación incluidos"]]);
+  if (/humo|fum/.test(n)) out.push(lang==="ca" ? ["Fum de colors","Les fotos que tothom voldrà compartir.",["Fum aeri de colors","4 colors a escollir","Sortida de la cerimònia o sessió de fotos"]] : ["Humo de colores","Las fotos que todos querrán compartir.",["Humo aéreo de colores","4 colores a elegir","Salida de la ceremonia o sesión de fotos"]]);
   return out;
 }
 function trName(name, lang){ if (lang !== "ca") return name; return name.replace(/fuegos fríos/gi,"focs freds").replace(/sin fondo/gi,"sense fons").replace(/solo fiesta/gi,"només festa").replace(/fiesta/gi,"festa").replace(/desplazamiento/gi,"desplaçament").replace(/ \+ /g," + "); }
