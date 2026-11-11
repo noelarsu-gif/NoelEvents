@@ -1,6 +1,6 @@
 // NoelEvents · service worker: la app funciona sin conexión. Los datos los sincroniza Firestore por su cuenta.
-const CACHE = "noelevents-v40";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./img/hero.jpg", "./img/dj.jpg", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png"];
+const CACHE = "noelevents-v41";
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./img/hero.jpg", "./img/dj.jpg", "./img/hero-ca.jpg", "./img/svc-dj.jpg", "./img/svc-foto.jpg", "./img/svc-360.jpg", "./img/svc-fuego.jpg", "./img/svc-humo.jpg", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png"];
 const CDN = ["https://www.gstatic.com/firebasejs/", "https://cdnjs.cloudflare.com/", "https://fonts.googleapis.com/", "https://fonts.gstatic.com/"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
