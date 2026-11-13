@@ -286,6 +286,28 @@ nav.tabs .fab svg{width:24px;height:24px}
 .kv .r .n{font-family:var(--num);font-variant-numeric:tabular-nums}
 .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .actions .btn{min-height:52px}
+#carga{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;flex-direction:column;opacity:0;transform:translateY(24px);transition:opacity .3s ease,transform .35s cubic-bezier(.22,.8,.24,1)}
+#carga.on{opacity:1;transform:none}
+#carga .cg-head{padding:calc(14px + env(safe-area-inset-top,0px)) 20px 12px;border-bottom:1px solid var(--line);background:var(--bg)}
+#carga .cg-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+#carga .cg-h{margin:4px 0 0;font-family:var(--display, 'Cormorant Garamond', serif);font-weight:400;font-size:30px;line-height:1.05}
+#carga .cg-prog{height:4px;background:var(--line);margin-top:14px;overflow:hidden}
+#carga .cg-prog i{display:block;height:100%;background:var(--gold);transition:width .35s ease}
+#carga .cg-count{margin:8px 0 0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+#carga .cg-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 20px calc(20px + env(safe-area-inset-bottom,0px))}
+#carga .cg-g h3{display:flex;justify-content:space-between;margin:22px 0 4px;font-size:11px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
+#carga .cg-g h3 span{color:var(--dim);letter-spacing:.1em}
+#carga .cg-it{display:flex;align-items:center;gap:14px;width:100%;min-height:58px;padding:10px 2px;border-bottom:1px solid var(--line);text-align:left;font-size:17px;color:var(--ink)}
+#carga .cg-it .bx{width:30px;height:30px;border:1.5px solid var(--line2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,border-color .2s}
+#carga .cg-it.on .bx{background:var(--gold);border-color:var(--gold);color:var(--goldInk)}
+#carga .cg-it.on .tx{color:var(--dim);text-decoration:line-through}
+.carga-btn{display:flex;align-items:center;gap:14px;width:100%;padding:14px;border:1px solid var(--line2);text-align:left}
+.carga-btn .cb-n{min-width:52px;height:52px;display:flex;align-items:center;justify-content:center;border:1px solid var(--gold);color:var(--gold);font-size:20px;font-weight:600}
+.carga-btn .cb-n small{font-size:12px;color:var(--dim);font-weight:400}
+.carga-btn.ok .cb-n{background:var(--gold);color:var(--goldInk)}
+.carga-btn .cb-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.carga-btn .cb-t small{color:var(--dim);font-size:12px}
+.carga-btn .cb-a{color:var(--gold)}
 .todo{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;width:100%;text-align:left}
 .todo .bx{width:22px;height:22px;border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .todo.done span{color:var(--dim);text-decoration:line-through}
@@ -703,7 +725,43 @@ function toast(msg, ms){ const t = $("#toast"); t.textContent = msg; t.classList
 function buzz(){ try { navigator.vibrate && navigator.vibrate(8); } catch(_){} }
 
 /* ============ Ajustes por defecto ============ */
+// Material para cargar: lista base por servicio (editable en Ajustes, un elemento por línea)
+const MAT = [
+  ["general", "Siempre", /./],
+  ["dj", "DJ", /dj|complet/i],
+  ["foto", "Fotomatón", /fotomat|photo|complet/i],
+  ["360", "Plataforma 360", /360|complet/i],
+  ["fuego", "Fuegos fríos", /fuego|foc|chispa/i],
+  ["humo", "Humo de colores", /humo|fum/i],
+  ["karaoke", "Karaoke", /karaoke/i],
+  ["telefono", "Teléfono audio-recuerdo", /tel[eè]f|audio/i],
+  ["neon", "Neón LED", /ne[oó]n/i],
+  ["burbujas", "Máquina de burbujas", /burbuj|bombolle/i]
+];
+const MAT_DEF = {
+  general: "Alargadores y regletas\nCinta americana y bridas\nCaja de herramientas\nLinterna o frontal\nCargadores de móvil\nCarro de carga",
+  dj: "Altavoces y soportes\nSubwoofers\nControlador / mesa de DJ\nPortátil de DJ y cargador\nPendrive con la música (copia)\nAuriculares\nMicrófonos inalámbricos y pilas\nCabina de DJ y tela\nIluminación y truss\nMáquina de humo y líquido\nCables de audio\nCables DMX\nBolas de discoteca",
+  foto: "Cámara réflex, baterías y cargador\nPC del fotomatón y cargador\nImpresora\nPapel y cinta de impresión\nPantalla / tablet\nAro de luz\nAtrezzo\nPhotocall / fondo\nÁlbum de firmas, rotuladores y cinta doble cara\nTrípode\nCables USB",
+  "360": "Plataforma 360 y brazo\niPhone y cargador\nPC de la plataforma y cargador\nMódem 4G\nIluminación LED\nCartel con el QR\nPostes y catenarias\nMando de la plataforma",
+  fuego: "2 máquinas de chispas frías\nRecarga de granulado\nMando a distancia\nCables de corriente\nExtintor",
+  humo: "Bengalas de humo de colores\nEncendedor\nGuantes\nBolsa para los restos",
+  karaoke: "Proyector y pantalla\nMicrófonos de karaoke\nLuz LED\nCartel con el QR de canciones",
+  telefono: "Teléfono audio-recuerdo\nCartel de instrucciones\nCargador",
+  neon: "Neón LED y fuente",
+  burbujas: "Máquina de burbujas\nLíquido de burbujas"
+};
+const matTxt = k => (S.cfg.material && S.cfg.material[k] != null) ? S.cfg.material[k] : (MAT_DEF[k] || "");
+// Grupos de material que necesita un evento según sus servicios y extras aceptados
+function matGrupos(e){
+  const nombres = [...(e.servicios||[]), ...(e.extrasAceptados||[])].map(x => x.nombre || "").join(" | ");
+  return MAT.filter(([k,,re]) => k === "general" || re.test(nombres))
+    .map(([k,t]) => ({ k, t, items: matTxt(k).split("\n").map(x => x.trim()).filter(Boolean) }))
+    .filter(g => g.items.length);
+}
+const matKey = (k, it) => k + "|" + it;
+function matProgreso(e){ const gs = matGrupos(e), c = e.cargado || {}; let n = 0, h = 0; gs.forEach(g => g.items.forEach(it => { n++; if (c[matKey(g.k,it)]) h++; })); return { n, h }; }
 const DEFAULT_CFG = {
+  material: {},
   nominas: [],
   costes: { ayudante: 120, album: 15, impresion: 13 },
   catalogo: [],
@@ -823,6 +881,25 @@ function setPriv(on, quiet){
 // Al salir de la app, las cifras se vuelven a ocultar
 document.addEventListener("visibilitychange", () => { if (document.hidden) setPriv(true, true); });
 const hasNom = () => (S.cfg.nominas||[]).some(n => num(n.importe) > 0);
+// Checklist de carga a pantalla completa (letra grande, fácil de tocar mientras cargas)
+const CARGA = { id: null };
+function abrirCarga(id){ CARGA.id = id; let o = $("#carga"); if (!o) { o = document.createElement("div"); o.id = "carga"; o.setAttribute("role", "dialog"); o.setAttribute("aria-modal", "true"); document.body.appendChild(o); }
+  o.hidden = false; renderCarga(); requestAnimationFrame(() => o.classList.add("on")); }
+function cerrarCarga(){ const o = $("#carga"); CARGA.id = null; if (!o) return; o.classList.remove("on"); setTimeout(() => { if (!CARGA.id) o.hidden = true; }, 320);
+  if (S.sheetMode === "detail") { const e = S.events.find(x => x.id === S.sheetId); if (e) $("#sheetBody").innerHTML = maskMoney(detailBody(e)); } }
+function renderCarga(){
+  const o = $("#carga"), e = S.events.find(x => x.id === CARGA.id); if (!o || !e) return;
+  const gs = matGrupos(e), c = e.cargado || {}, p = matProgreso(e), st = o.querySelector(".cg-body")?.scrollTop || 0;
+  o.innerHTML = `<div class="cg-head"><div class="cg-top"><div><p class="eyebrow" style="margin:0">Material · ${esc(fmtLong ? fmtLong(e.fecha) : e.fecha)}</p><h2 class="cg-h">${esc(e.novios || "Evento")}</h2></div>
+      <button class="iconbtn tap" data-act="cargaclose" aria-label="Cerrar">${I.x}</button></div>
+    <div class="cg-prog"><i style="width:${p.n ? Math.round(p.h/p.n*100) : 0}%"></i></div><p class="cg-count">${p.h === p.n ? "✓ Todo cargado" : `${p.h} de ${p.n} cargado`}</p></div>
+  <div class="cg-body">${gs.map(g => { const hc = g.items.filter(it => c[matKey(g.k,it)]).length;
+      return `<section class="cg-g"><h3>${g.t}<span>${hc}/${g.items.length}</span></h3>${g.items.map(it => { const k = matKey(g.k,it), on = !!c[k];
+        return `<button class="cg-it tap ${on ? "on" : ""}" data-act="cargaitem" data-k="${esc(k)}" aria-pressed="${on}"><span class="bx">${on ? I.check : ""}</span><span class="tx">${esc(it)}</span></button>`; }).join("")}</section>`; }).join("")}
+    <button class="btn sm ghost tap" data-act="cargareset" style="margin:18px 0 6px">Desmarcar todo</button>
+    <p class="sub" style="margin:0 0 30px">La lista sale de Ajustes → Material por servicio. Lo que marcas lo ve también el otro móvil.</p></div>`;
+  const b = o.querySelector(".cg-body"); if (b) b.scrollTop = st;
+}
 function render(anim){
   if (!S.year) S.year = defaultYear();
   document.querySelectorAll("nav.tabs [data-tab]").forEach(b => { b.classList.toggle("on", b.dataset.tab === S.tab); b.setAttribute("aria-current", b.dataset.tab === S.tab ? "page" : "false"); });
@@ -994,6 +1071,9 @@ function vAjustes(){
     <div class="grid3"><label class="f"><span>Ayudante €</span><input id="cA" data-c="costes.ayudante" inputmode="decimal" value="${esc(c.costes.ayudante)}"></label>
     <label class="f"><span>Álbum €</span><input id="cB" data-c="costes.album" inputmode="decimal" value="${esc(c.costes.album)}"></label>
     <label class="f"><span>Impresión €</span><input id="cC" data-c="costes.impresion" inputmode="decimal" value="${esc(c.costes.impresion)}"></label></div></div>
+  <div class="fs"><div class="lt">Material por servicio</div>
+    <p class="sub" style="margin:0">Una cosa por línea. Cada evento muestra la lista de los servicios que lleva, para ir marcando al cargar.</p>
+    ${MAT.map(([k,t]) => `<label class="f"><span>${t}</span><textarea data-c="material.${k}" rows="${Math.min(12, Math.max(3, matTxt(k).split("\n").length + 1))}" style="line-height:1.55">${esc(matTxt(k))}</textarea></label>`).join("")}</div>
   <div class="fs"><div class="lt">Días bloqueados (familia)</div>
     <p class="sub" style="margin:0">Formato DD-MM para que se repita cada año (ej. 15-03), o DD-MM-AAAA para un día concreto.</p>
     ${(c.bloqueos||[]).map((b,i)=>`<div class="line l2" style="grid-template-columns:110px minmax(0,1fr) 44px"><input id="b${i}a" data-c="bloqueos.${i}.fecha" value="${esc(fechaBloqVer(b.fecha))}" inputmode="numeric" aria-label="Fecha (DD-MM)" placeholder="15-03"><input id="b${i}b" data-c="bloqueos.${i}.motivo" value="${esc(b.motivo)}" aria-label="Motivo"><button type="button" class="x tap" data-act="cfgdel" data-k="bloqueos" data-i="${i}" aria-label="Quitar">${I.x}</button></div>`).join("")}
@@ -1097,6 +1177,8 @@ function detailBody(e){
   ${(e.pagos||[]).length ? `<div class="fs"><div class="lt">Pagos</div><div class="kv">${e.pagos.map(p=>`<div class="r"><span>${p.fecha?fmtShort(p.fecha)+" · ":""}${esc(p.metodo||"Pago")}</span><span class="n">${eur(num(p.importe))}</span></div>`).join("")}</div></div>`:""}
   ${!isDer ? `<div class="fs"><div class="lt">Costes y beneficio</div><div class="kv">${costRows || `<div class="r"><span>Sin costes</span><span></span></div>`}<div class="r"><span style="color:var(--ink);font-weight:600">Beneficio</span><span class="n" style="color:var(--gold);font-size:17px">${eur(ingreso(e)-coste(e))}</span></div></div></div>`:""}
   ${(e.tareas||[]).length ? `<div class="fs"><div class="lt">Tareas</div><div>${e.tareas.map((t,i)=>`<button class="todo tap ${t.hecha?"done":""}" data-act="todo" data-id="${e.id}" data-i="${i}"><span class="bx">${t.hecha?I.check:""}</span><span>${esc(t.texto)}</span></button>`).join("")}</div></div>`:""}
+  ${(() => { const p = matProgreso(e); if (!p.n) return ""; const ok = p.h === p.n; return `<div class="fs"><div class="lt">Material para cargar</div>
+    <button class="carga-btn tap ${ok ? "ok" : ""}" data-act="carga" data-id="${e.id}"><span class="cb-n">${ok ? I.check : `${p.h}<small>/${p.n}</small>`}</span><span class="cb-t"><b>${ok ? "Todo cargado" : "Checklist de carga"}</b><small>${matGrupos(e).filter(g => g.k !== "general").map(g => g.t).join(" · ") || "Material general"}</small></span><span class="cb-a">${I.right}</span></button></div>`; })()}
   ${e.notasEquipo ? `<div class="fs"><div class="lt">Notas para el equipo</div><p style="margin:0;line-height:1.6;color:var(--ink2);white-space:pre-wrap">${esc(e.notasEquipo)}</p></div>`:""}
   ${e.notas ? `<div class="fs"><div class="lt">Notas internas</div><p style="margin:0;line-height:1.6;color:var(--ink2);white-space:pre-wrap">${esc(e.notas)}</p></div>`:""}
   <div class="fs">${S.confirmDel ? `<div class="panel" style="border-color:var(--badLine)"><span>¿Eliminar “${esc(e.novios)}”? No se puede deshacer.</span><div class="actions"><button class="btn ghost tap" data-act="delno">Cancelar</button><button class="btn danger tap" data-act="delyes" data-id="${e.id}">Eliminar</button></div></div>` : `<button class="btn danger tap" data-act="del">${I.trash} Eliminar evento</button>`}</div>`;
@@ -1501,6 +1583,13 @@ document.addEventListener("click", async ev => {
     case "pdfpanel": { const p = $("#pdfPanel"); p.hidden = !p.hidden; if (!p.hidden) p.scrollIntoView({behavior:"smooth", block:"nearest"}); break; }
     case "plang": S.pdfLang = a.dataset.v; a.parentNode.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b===a)); break;
     case "mkpdf": { const e = S.events.find(x=>x.id===id); S.pdfCond = $("#pdfCond").checked; await makePdf(e, S.pdfLang, S.pdfCond); break; }
+    case "carga": abrirCarga(a.dataset.id || id); break;
+    case "cargaclose": cerrarCarga(); break;
+    case "cargaitem": { const e = S.events.find(x => x.id === CARGA.id); if (!e) break; const c = { ...(e.cargado||{}) }, k = a.dataset.k;
+      if (c[k]) delete c[k]; else c[k] = true; e.cargado = c; buzz(); renderCarga();
+      const p = matProgreso(e); if (p.n && p.h === p.n) toast("¡Todo cargado! 🚐 A por la boda.");
+      if (S.db) write(S.db.doc("events/" + e.id).update({ cargado: c }), "guardar el material"); break; }
+    case "cargareset": { const e = S.events.find(x => x.id === CARGA.id); if (!e) break; e.cargado = {}; renderCarga(); if (S.db) write(S.db.doc("events/" + e.id).update({ cargado: {} }), "reiniciar el material"); toast("Checklist reiniciado."); break; }
     case "todo": { const e = S.events.find(x=>x.id===id); const tareas = clone(e.tareas); tareas[+a.dataset.i].hecha = !tareas[+a.dataset.i].hecha; buzz(); e.tareas = tareas; $("#sheetBody").innerHTML = maskMoney(detailBody(e)); if (S.db) write(S.db.doc("events/"+id).update({tareas}), "guardar la tarea"); break; }
     case "del": S.confirmDel = true; $("#sheetBody").innerHTML = maskMoney(detailBody(S.events.find(x=>x.id===S.sheetId))); break;
     case "delno": S.confirmDel = false; $("#sheetBody").innerHTML = maskMoney(detailBody(S.events.find(x=>x.id===S.sheetId))); break;
@@ -1543,6 +1632,7 @@ document.addEventListener("submit", async ev => {
   c.catalogo = c.catalogo.filter(s=>s.nombre).map(s=>({nombre:s.nombre.trim(), precio:num(s.precio)}));
   c.bloqueos = c.bloqueos.filter(b=>b.fecha).map(b=>({fecha:b.fecha.trim(), motivo:b.motivo.trim()}));
   c.companeros = c.companeros.map(s=>String(s).trim()).filter(Boolean);
+  c.material = Object.fromEntries(MAT.map(([k]) => [k, String((c.material||{})[k] ?? matTxt(k)).split("\n").map(x => x.trim()).filter(Boolean).join("\n")]));
   c.costes = { ayudante:num(c.costes.ayudante), album:num(c.costes.album), impresion:num(c.costes.impresion) };
   c.horasExtra = { antelacion:num(c.horasExtra.antelacion), mismoDia:num(c.horasExtra.mismoDia) };
   if (!S.db) { toast("Sin conexión: no se ha guardado."); return; }
@@ -1841,6 +1931,7 @@ function startData(){
     if (first) S.year = S.demo ? new Date().getFullYear() + 1 : defaultYear();
     if (first) setTimeout(openFromHash, 50);
     if (S.sheetMode === "edit" || S.sheetMode === "copy") { render(false); return; }
+    if (CARGA.id) renderCarga();
     if (S.sheetMode === "detail") { const e = S.events.find(x=>x.id===S.sheetId); if (e && !S.confirmDel && $("#pdfPanel")?.hidden !== false) $("#sheetBody").innerHTML = maskMoney(detailBody(e)); }
     render(first);
   }, err => { console.log("[NoelEvents] db", err); S.loaded = true; render(false); if (err && err.code === "permission-denied") wipeLocal("La sesión de este dispositivo se ha cerrado por seguridad. Vuelve a entrar."); });
