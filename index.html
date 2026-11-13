@@ -301,6 +301,8 @@ nav.tabs .fab svg{width:24px;height:24px}
 #carga .cg-it .bx{width:30px;height:30px;border:1.5px solid var(--line2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,border-color .2s}
 #carga .cg-it.on .bx{background:var(--gold);border-color:var(--gold);color:var(--goldInk)}
 #carga .cg-it.on .tx{color:var(--dim);text-decoration:line-through}
+#carga .cg-it.opt .tx{color:var(--ink2)}
+#carga .cg-it .tx small{display:block;margin-top:3px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);text-decoration:none}
 .carga-btn{display:flex;align-items:center;gap:14px;width:100%;padding:14px;border:1px solid var(--line2);text-align:left}
 .carga-btn .cb-n{min-width:52px;height:52px;display:flex;align-items:center;justify-content:center;border:1px solid var(--gold);color:var(--gold);font-size:20px;font-weight:600}
 .carga-btn .cb-n small{font-size:12px;color:var(--dim);font-weight:400}
@@ -736,11 +738,23 @@ const MAT = [
   ["karaoke", "Karaoke", /karaoke/i],
   ["telefono", "Teléfono audio-recuerdo", /tel[eè]f|audio/i],
   ["neon", "Neón LED", /ne[oó]n/i],
-  ["burbujas", "Máquina de burbujas", /burbuj|bombolle/i]
+  ["burbujas", "Burbujas con humo", /burbuj|bombolle/i],
+  ["co2", "Pistola de CO2", /co2|co₂|pistola/i]
 ];
+// Elementos con condición al principio de la línea:
+//  [ceremonia] …  → solo si el evento tiene hora de ceremonia
+//  [opcional] …   → sale, pero no cuenta para el total
+//  [lugar:xxx] …  → obligatorio si el lugar contiene "xxx"; si no, opcional
+function matItem(raw, e){
+  const m = raw.match(/^\[([a-zà-ú]+)(?::([^\]]+))?\]\s*(.+)$/i); if (!m) return { t: raw, opt: false };
+  const c = m[1].toLowerCase(), t = m[3].trim();
+  if (c === "ceremonia") return (e.horario && e.horario.ceremonia) ? { t, opt: false } : null;
+  if (c === "lugar") return { t, opt: !(e.lugar || "").toLowerCase().includes(String(m[2]||"").toLowerCase().trim()) };
+  return { t, opt: true };
+}
 const MAT_DEF = {
   general: "Alargadores y regletas\nCinta americana y bridas\nCaja de herramientas\nLinterna o frontal\nCargadores de móvil\nCarro de carga",
-  dj: "Altavoces y soportes\nSubwoofers\nControlador / mesa de DJ\nPortátil de DJ y cargador\nPendrive con la música (copia)\nAuriculares\nMicrófonos inalámbricos y pilas\nCabina de DJ y tela\nIluminación y truss\nMáquina de humo y líquido\nCables de audio\nCables DMX\nBolas de discoteca",
+  dj: "2 altavoces Maui 11\n1 altavoz Maui 5 (¡batería cargada!)\nCableado de audio\nCables de corriente\nAlargadores\n2 cabezas móviles wash\nConjunto de 4 PAR LED\nBarras y contrapesos de las cabezas móviles\nTrípode de los PAR LED\nBarra LED detrás de la cabina\nFachada DJ\nControladora\nSoporte / patas de la controladora\nCinta para enrollar los cables\n[ceremonia] Micrófono y pie de micro\n[lugar:roqueta] 2 altavoces Behringer (montaje aparte en el banquete)",
   foto: "Cámara réflex, baterías y cargador\nPC del fotomatón y cargador\nImpresora\nPapel y cinta de impresión\nPantalla / tablet\nAro de luz\nAtrezzo\nPhotocall / fondo\nÁlbum de firmas, rotuladores y cinta doble cara\nTrípode\nCables USB",
   "360": "Plataforma 360 y brazo\niPhone y cargador\nPC de la plataforma y cargador\nMódem 4G\nIluminación LED\nCartel con el QR\nPostes y catenarias\nMando de la plataforma",
   fuego: "2 máquinas de chispas frías\nRecarga de granulado\nMando a distancia\nCables de corriente\nExtintor",
@@ -748,18 +762,20 @@ const MAT_DEF = {
   karaoke: "Proyector y pantalla\nMicrófonos de karaoke\nLuz LED\nCartel con el QR de canciones",
   telefono: "Teléfono audio-recuerdo\nCartel de instrucciones\nCargador",
   neon: "Neón LED y fuente",
-  burbujas: "Máquina de burbujas\nLíquido de burbujas"
+  burbujas: "Máquina de burbujas con humo\nLíquido de burbujas\nLíquido de humo",
+  co2: "Pistola de humo CO2\nBombona de CO2 cargada"
 };
+const MAT_DJ_V1 = "Altavoces y soportes\nSubwoofers\nControlador / mesa de DJ\nPortátil de DJ y cargador\nPendrive con la música (copia)\nAuriculares\nMicrófonos inalámbricos y pilas\nCabina de DJ y tela\nIluminación y truss\nMáquina de humo y líquido\nCables de audio\nCables DMX\nBolas de discoteca";
 const matTxt = k => (S.cfg.material && S.cfg.material[k] != null) ? S.cfg.material[k] : (MAT_DEF[k] || "");
 // Grupos de material que necesita un evento según sus servicios y extras aceptados
 function matGrupos(e){
   const nombres = [...(e.servicios||[]), ...(e.extrasAceptados||[])].map(x => x.nombre || "").join(" | ");
   return MAT.filter(([k,,re]) => k === "general" || re.test(nombres))
-    .map(([k,t]) => ({ k, t, items: matTxt(k).split("\n").map(x => x.trim()).filter(Boolean) }))
+    .map(([k,t]) => ({ k, t, items: matTxt(k).split("\n").map(x => x.trim()).filter(Boolean).map(x => matItem(x, e)).filter(Boolean) }))
     .filter(g => g.items.length);
 }
 const matKey = (k, it) => k + "|" + it;
-function matProgreso(e){ const gs = matGrupos(e), c = e.cargado || {}; let n = 0, h = 0; gs.forEach(g => g.items.forEach(it => { n++; if (c[matKey(g.k,it)]) h++; })); return { n, h }; }
+function matProgreso(e){ const gs = matGrupos(e), c = e.cargado || {}; let n = 0, h = 0; gs.forEach(g => g.items.forEach(it => { if (it.opt) return; n++; if (c[matKey(g.k,it.t)]) h++; })); return { n, h }; }
 const DEFAULT_CFG = {
   material: {},
   nominas: [],
@@ -893,9 +909,9 @@ function renderCarga(){
   o.innerHTML = `<div class="cg-head"><div class="cg-top"><div><p class="eyebrow" style="margin:0">Material · ${esc(fmtLong ? fmtLong(e.fecha) : e.fecha)}</p><h2 class="cg-h">${esc(e.novios || "Evento")}</h2></div>
       <button class="iconbtn tap" data-act="cargaclose" aria-label="Cerrar">${I.x}</button></div>
     <div class="cg-prog"><i style="width:${p.n ? Math.round(p.h/p.n*100) : 0}%"></i></div><p class="cg-count">${p.h === p.n ? "✓ Todo cargado" : `${p.h} de ${p.n} cargado`}</p></div>
-  <div class="cg-body">${gs.map(g => { const hc = g.items.filter(it => c[matKey(g.k,it)]).length;
-      return `<section class="cg-g"><h3>${g.t}<span>${hc}/${g.items.length}</span></h3>${g.items.map(it => { const k = matKey(g.k,it), on = !!c[k];
-        return `<button class="cg-it tap ${on ? "on" : ""}" data-act="cargaitem" data-k="${esc(k)}" aria-pressed="${on}"><span class="bx">${on ? I.check : ""}</span><span class="tx">${esc(it)}</span></button>`; }).join("")}</section>`; }).join("")}
+  <div class="cg-body">${gs.map(g => { const hc = g.items.filter(it => !it.opt && c[matKey(g.k,it.t)]).length;
+      return `<section class="cg-g"><h3>${g.t}<span>${hc}/${g.items.filter(it => !it.opt).length}</span></h3>${g.items.map(it => { const k = matKey(g.k,it.t), on = !!c[k];
+        return `<button class="cg-it tap ${on ? "on" : ""} ${it.opt ? "opt" : ""}" data-act="cargaitem" data-k="${esc(k)}" aria-pressed="${on}"><span class="bx">${on ? I.check : ""}</span><span class="tx">${esc(it.t)}${it.opt ? `<small>si hace falta</small>` : ""}</span></button>`; }).join("")}</section>`; }).join("")}
     <button class="btn sm ghost tap" data-act="cargareset" style="margin:18px 0 6px">Desmarcar todo</button>
     <p class="sub" style="margin:0 0 30px">La lista sale de Ajustes → Material por servicio. Lo que marcas lo ve también el otro móvil.</p></div>`;
   const b = o.querySelector(".cg-body"); if (b) b.scrollTop = st;
@@ -1072,7 +1088,7 @@ function vAjustes(){
     <label class="f"><span>Álbum €</span><input id="cB" data-c="costes.album" inputmode="decimal" value="${esc(c.costes.album)}"></label>
     <label class="f"><span>Impresión €</span><input id="cC" data-c="costes.impresion" inputmode="decimal" value="${esc(c.costes.impresion)}"></label></div></div>
   <div class="fs"><div class="lt">Material por servicio</div>
-    <p class="sub" style="margin:0">Una cosa por línea. Cada evento muestra la lista de los servicios que lleva, para ir marcando al cargar.</p>
+    <p class="sub" style="margin:0;line-height:1.55">Una cosa por línea. Cada evento muestra la lista de los servicios que lleva. Trucos al principio de la línea: <b>[ceremonia]</b> solo sale si hay hora de ceremonia · <b>[opcional]</b> sale como «si hace falta» · <b>[lugar:roqueta]</b> es obligatorio si el lugar contiene esa palabra.</p>
     ${MAT.map(([k,t]) => `<label class="f"><span>${t}</span><textarea data-c="material.${k}" rows="${Math.min(12, Math.max(3, matTxt(k).split("\n").length + 1))}" style="line-height:1.55">${esc(matTxt(k))}</textarea></label>`).join("")}</div>
   <div class="fs"><div class="lt">Días bloqueados (familia)</div>
     <p class="sub" style="margin:0">Formato DD-MM para que se repita cada año (ej. 15-03), o DD-MM-AAAA para un día concreto.</p>
@@ -1943,6 +1959,11 @@ function startData(){
   S.db.doc("config/catalogos").onSnapshot(snap => { if (snap.exists) { const c = snap.data(); if (c && Array.isArray(c.tarifas) && c.tarifas.length) { S.cats = c; if ((c.v || 1) < 3) { const m = clone(c); m.v = 3; if (!m.tarifas.some(t => t.id === "torrens")) m.tarifas.push(clone(TORRENS)); m.tarifas.forEach(t => { if (t.id === "torrens" && !t.marca) t.marca = "events"; }); S.cats = m; write(S.db.doc("config/catalogos").set(m), "actualizar los catálogos"); } } } if (S.tab === "inicio" && !S.sheetMode) render(false); }, () => {});
   S.db.doc("config/ajustes").onSnapshot(snap => {
     if (snap.exists) { const c = snap.data(); S.cfg = Object.assign(clone(DEFAULT_CFG), clone(c)); S.cfg.costes = Object.assign({}, DEFAULT_CFG.costes, c.costes||{}); S.cfg.contacto = Object.assign({}, DEFAULT_CFG.contacto, c.contacto||{}); S.cfg.horasExtra = Object.assign({}, DEFAULT_CFG.horasExtra, c.horasExtra||{});
+      if ((c.matV||0) < 2 && !S.demo) { const m = c.material || {}, up = { matV: 2 };
+        if (m.dj == null || m.dj === MAT_DJ_V1) up["material.dj"] = MAT_DEF.dj;
+        if (m.burbujas == null || m.burbujas === "Máquina de burbujas\nLíquido de burbujas") up["material.burbujas"] = MAT_DEF.burbujas;
+        write(S.db.doc("config/ajustes").update(up), "actualizar el material");
+        S.cfg.material = { ...m, ...(up["material.dj"] ? { dj: up["material.dj"] } : {}), ...(up["material.burbujas"] ? { burbujas: up["material.burbujas"] } : {}) }; }
       }
     if (S.tab === "ajustes" && document.activeElement && document.activeElement.closest && document.activeElement.closest("#cfgForm")) return;
     if (S.sheetMode !== "edit") render(false);
