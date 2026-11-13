@@ -1152,6 +1152,7 @@ function detailBody(e){
   <div class="kv">
     <div class="r"><span>Fecha</span><span style="text-transform:capitalize">${fmtLong(e.fecha)}</span></div>
     <div class="r"><span>Lugar</span><span>${esc(e.lugar||"—")}</span></div>
+    ${e.invitados ? `<div class="r"><span>Invitados</span><span>${esc(e.invitados)}</span></div>` : ""}
     ${h.montaje||h.ceremonia||h.inicio||h.fin ? `<div class="r"><span>Horario</span><span>${[h.montaje&&"Montaje "+h.montaje,h.ceremonia&&"Ceremonia "+h.ceremonia,h.inicio&&"Inicio "+h.inicio,h.fin&&"Fin "+h.fin].filter(Boolean).join(" · ")}</span></div>`:""}
     ${e.contacto||e.telefono ? `<div class="r"><span>Contacto</span><span>${esc([e.contacto,e.telefono].filter(Boolean).join(" · "))}</span></div>`:""}
   </div>
@@ -1186,7 +1187,7 @@ function detailBody(e){
 
 /* ---------- Editor ---------- */
 function blankEvent(date){
-  return { tipo:"boda", estado:"reservada", fecha: date || "", novios:"", lugar:"", contacto:"", telefono:"", color:"", etiquetas:[], horario:{montaje:"",ceremonia:"",inicio:"",fin:""},
+  return { tipo:"boda", estado:"reservada", fecha: date || "", novios:"", lugar:"", invitados:"", contacto:"", telefono:"", color:"", etiquetas:[], horario:{montaje:"",ceremonia:"",inicio:"",fin:""},
     servicios:[], desplazamiento:0, extras:[], pagos:[], costes:{ayudante:0, ayudanteNombre:"", album:0, impresion:0, otros:[]},
     derivacion:{companero:"", comision:"", tipo:"€", cobrada:false}, idioma:"ca", condiciones:true, observaciones:"", notasEquipo:"", notas:"", tareas:[] };
 }
@@ -1208,7 +1209,7 @@ function editorBody(e){
       <label class="f"><span>Estado</span><select id="e_estado" data-f="estado" data-rerender="1">${[["reservada","Reservada"],["propuesta","Propuesta"],["derivada","Derivada"],["cancelada","Cancelada"]].map(([v,t])=>`<option value="${v}" ${e.estado===v?"selected":""}>${t}</option>`).join("")}</select></label>
     </div>
     ${inp("novios", e.novios, e.tipo==="boda"?"Novios (ej. Laia i Pol)":"Nombre del evento")}
-    <div class="grid2">${inp("fecha", e.fecha, "Fecha", 'type="date"')}${inp("lugar", e.lugar, "Lugar")}${inp("contacto", e.contacto, "Contacto")}${inp("telefono", e.telefono, "Teléfono", 'inputmode="tel"')}</div>
+    <div class="grid2">${inp("fecha", e.fecha, "Fecha", 'type="date"')}${inp("lugar", e.lugar, "Lugar")}${inp("invitados", e.invitados ?? "", "Invitados (aprox.)", 'inputmode="numeric" placeholder="Opcional"')}${inp("contacto", e.contacto, "Contacto")}${inp("telefono", e.telefono, "Teléfono", 'inputmode="tel"')}</div>
     <div class="f"><span>Color en el calendario</span><div class="chips"><button type="button" class="chip tap ${!e.color?"on":""}" data-act="color" data-v="">Auto</button>${COLORS.map(c=>`<button type="button" class="sw tap ${e.color===c?"on":""}" style="background:${c}" data-act="color" data-v="${c}" aria-label="Color ${c}"></button>`).join("")}</div></div>
     ${inp("etiquetas", (e.etiquetas||[]).join(", "), "Etiquetas (separadas por comas)")}
   </div>
@@ -1276,6 +1277,7 @@ function cleanEvent(e){
   o.extras = (o.extras||[]).filter(s=>s.nombre||num(s.precio)).map(s=>({nombre:String(s.nombre||"").trim(), precio:num(s.precio)}));
   o.pagos = (o.pagos||[]).filter(p=>num(p.importe)).map(p=>({fecha:p.fecha||"", metodo:p.metodo||"Bizum", importe:num(p.importe)}));
   o.desplazamiento = num(o.desplazamiento);
+  { const v = String(o.invitados ?? "").replace(/[^\d]/g, ""); o.invitados = v ? +v : ""; }
   o.costes = { ayudanteNombre: (o.costes.ayudanteNombre||"").trim(), ayudante:num(o.costes.ayudante), album:num(o.costes.album), impresion:num(o.costes.impresion), otros:(o.costes.otros||[]).filter(x=>x.concepto||num(x.importe)).map(x=>({concepto:x.concepto||"", importe:num(x.importe)})) };
   o.derivacion = { companero:(o.derivacion.companero||"").trim(), comision:num(o.derivacion.comision), tipo:o.derivacion.tipo||"€", cobrada:!!o.derivacion.cobrada };
   o.tareas = (o.tareas||[]).filter(t=>String(t.texto||"").trim()).map(t=>({texto:String(t.texto).trim(), hecha:!!t.hecha}));
@@ -1304,6 +1306,7 @@ function waText(e){
   const h = e.horario||{}; const servs = (e.servicios||[]).map(s=>s.nombre).filter(Boolean).join(", ");
   const L = [`*${(e.tipo||"boda").replace(/^./,c=>c.toUpperCase())} ${e.novios}*`, `📅 ${fmtLong(e.fecha).replace(/^./,c=>c.toUpperCase())}`, `📍 ${e.lugar||"—"}`];
   if (e.lugar) L.push(`🗺️ https://maps.google.com/?q=${encodeURIComponent(e.lugar)}`);
+  if (e.invitados) L.push(`👥 Invitados: ${e.invitados}`);
   if (h.montaje) L.push(`🔧 Montaje: ${h.montaje}`); if (h.ceremonia) L.push(`💍 Ceremonia: ${h.ceremonia}`); if (h.inicio) L.push(`▶️ Inicio servicio: ${h.inicio}`); if (h.fin) L.push(`⏹️ Fin: ${h.fin}`);
   if (servs) L.push(`🎛️ Servicios: ${servs}`);
   if (e.contacto || e.telefono) L.push(`☎️ Contacto: ${[e.contacto, e.telefono].filter(Boolean).join(" · ")}`);
@@ -1365,10 +1368,10 @@ async function copyText(t){ try { await navigator.clipboard.writeText(t); toast(
 
 /* ============ PDF de reserva ============ */
 const TX = {
-  ca: { conf:"Confirmació de reserva", data:"Data", lloc:"Lloc", hora:"Hora", serveis:"Serveis contractats", despl:"Desplaçament", obs:"Observacions", total:"Total", pagat:"Pagat", pendent:"Pendent", gracies:"Gràcies per confiar en nosaltres.", reserva:"La vostra reserva", inclou:["Què ","inclou"], cond:["Condicions ","del servei"], claim:["Vosaltres gaudiu. ","Nosaltres ens ocupem de la resta."], muntatge:"Muntatge<br>inclòs", conj:"i",
+  ca: { conf:"Confirmació de reserva", data:"Data", lloc:"Lloc", hora:"Hora", conv:"Convidats", serveis:"Serveis contractats", despl:"Desplaçament", obs:"Observacions", total:"Total", pagat:"Pagat", pendent:"Pendent", gracies:"Gràcies per confiar en nosaltres.", reserva:"La vostra reserva", inclou:["Què ","inclou"], cond:["Condicions ","del servei"], claim:["Vosaltres gaudiu. ","Nosaltres ens ocupem de la resta."], muntatge:"Muntatge<br>inclòs", conj:"i",
     senal:(i,m,f)=>`Bestreta de ${i} abonada${m?" per "+m:""}${f?" el "+f:""} en concepte de reserva.`, mes: MES_CA, de:(d,m,y)=>`${d} ${/^[aeiouà]/.test(m)?"d’":"de "}${m} de ${y}`,
     extra:["Contractades amb antelació","El mateix dia, en efectiu"] },
-  es: { conf:"Confirmación de reserva", data:"Fecha", lloc:"Lugar", hora:"Hora", serveis:"Servicios contratados", despl:"Desplazamiento", obs:"Observaciones", total:"Total", pagat:"Pagado", pendent:"Pendiente", gracies:"Gracias por confiar en nosotros.", reserva:"Vuestra reserva", inclou:["Qué ","incluye"], cond:["Condiciones ","del servicio"], claim:["Vosotros disfrutáis. ","Nosotros nos ocupamos del resto."], muntatge:"Montaje<br>incluido", conj:"y",
+  es: { conf:"Confirmación de reserva", data:"Fecha", lloc:"Lugar", hora:"Hora", conv:"Invitados", serveis:"Servicios contratados", despl:"Desplazamiento", obs:"Observaciones", total:"Total", pagat:"Pagado", pendent:"Pendiente", gracies:"Gracias por confiar en nosotros.", reserva:"Vuestra reserva", inclou:["Qué ","incluye"], cond:["Condiciones ","del servicio"], claim:["Vosotros disfrutáis. ","Nosotros nos ocupamos del resto."], muntatge:"Montaje<br>incluido", conj:"y",
     senal:(i,m,f)=>`Señal de ${i} abonada${m?" por "+m:""}${f?" el "+f:""} en concepto de reserva.`, mes: MES, de:(d,m,y)=>`${d} de ${m} de ${y}`,
     extra:["Contratadas con antelación","El mismo día, en efectivo"] }
 };
@@ -1426,10 +1429,11 @@ function reservaHTML(e, lang, cond){
     <div style="flex:1;display:flex;flex-direction:column;gap:${big?18:24}px;padding:30px 72px 40px">
       <div style="display:flex;flex-direction:column;gap:12px"><p style="margin:0;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#C9A961;font-weight:600">${T.conf}</p>
         <h1 style="margin:0;font-family:'Cormorant Garamond',serif;font-weight:400;font-size:${(e.novios||"").length>24?52:64}px;line-height:1">${names}</h1></div>
-      <div style="display:grid;grid-template-columns:${h.inicio?"1.25fr 1fr .6fr":"1fr 1fr"};gap:24px;border-top:1px solid #3A342A;border-bottom:1px solid #3A342A;padding:22px 0">
+      <div style="display:grid;grid-template-columns:${["1.25fr","1fr", h.inicio && ".6fr", e.invitados && ".7fr"].filter(Boolean).join(" ")};gap:24px;border-top:1px solid #3A342A;border-bottom:1px solid #3A342A;padding:22px 0">
         <div style="display:flex;flex-direction:column;gap:6px">${lab(T.data)}<p style="margin:0;font-family:'Playfair Display',serif;font-size:24px">${dateStr}</p></div>
         <div style="display:flex;flex-direction:column;gap:6px">${lab(T.lloc)}<p style="margin:0;font-family:'Playfair Display',serif;font-size:24px">${esc(e.lugar||"—")}</p></div>
         ${h.inicio?`<div style="display:flex;flex-direction:column;gap:6px">${lab(T.hora)}<p style="margin:0;font-family:'Playfair Display',serif;font-size:24px">${esc(h.inicio)}</p></div>`:""}
+        ${e.invitados?`<div style="display:flex;flex-direction:column;gap:6px">${lab(T.conv)}<p style="margin:0;font-family:'Playfair Display',serif;font-size:24px">${esc(e.invitados)}</p></div>`:""}
       </div>
       <div style="display:flex;flex-direction:column;gap:4px"><p style="margin:0 0 6px;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#9C958A">${T.serveis}</p>
         ${items.map(([n,v])=>`<div style="display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding:${big?9:12}px 0;border-bottom:1px solid #2E2A22"><p style="margin:0;font-family:'Cormorant Garamond',serif;font-size:${big?27:32}px">${esc(n)}</p><p style="margin:0;font-family:'Playfair Display',serif;font-size:${big?24:28}px;color:#C9A961;white-space:nowrap">${eur(v)}</p></div>`).join("")}
