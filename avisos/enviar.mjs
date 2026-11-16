@@ -46,20 +46,22 @@ async function avisarNuevos(){
     t => `${t[0]} ¡Una más para la colección! ${t[1]}`,
     t => `${t[0]} ¡Sí, quiero… otra reserva! ${t[1]}`,
     t => `${t[0]} ¡Se viene fiestón! ${t[1]}`,
-    t => `${t[0]} ¡Otra pista de baile que llenar! ${t[1]}`,
     t => `${t[0]} ¡Esto no para! ${t[1]}`,
     t => `${t[0]} ¡Reserva en el bote! ${t[1]}`,
     t => `${t[0]} ¡Hoy se celebra! Nueva fecha ${t[1]}`,
     t => `${t[0]} ¡Más madera! Otra boda cerrada ${t[1]}`,
     t => `${t[0]} ¡Toma ya! Nueva reserva ${t[1]}`,
     t => `${t[0]} ¡La agenda echa humo! ${t[1]}`,
-    t => `${t[0]} ¡Chin chin, cerramos otra! ${t[1]}`,
-    t => `${t[0]} ¡Que suene la música! Nueva reserva ${t[1]}`
+    t => `${t[0]} ¡Chin chin, cerramos otra! ${t[1]}`
   ];
+  const TIT_DJ = [t => `${t[0]} ¡Otra pista de baile que llenar! ${t[1]}`, t => `${t[0]} ¡Que suene la música! Nueva reserva ${t[1]}`, t => `${t[0]} ¡Otra boda con banda sonora tuya! ${t[1]}`];
+  const TIT_FOTO = [t => `${t[0]} ¡Más recuerdos para imprimir! ${t[1]}`, t => `${t[0]} ¡Otro álbum que llenar de firmas! ${t[1]}`, t => `${t[0]} ¡Flashes a la vista! Nueva reserva ${t[1]}`];
+  const TIT_360 = [t => `${t[0]} ¡Que gire la plataforma! Nueva reserva ${t[1]}`, t => `${t[0]} ¡Más vídeos a cámara lenta! ${t[1]}`];
   for (const d of nuevos) {
     const e = d.data(), tipo = (e.tipo || "boda").toLowerCase(), em = EMO[tipo] || EMO.otro;
     const a1 = pick(em), a2 = pick(em.filter(x => x !== a1)) || a1;
-    const titulo = pick(TIT)([a1, a2]);
+    const pf = perfil(e);
+    const titulo = pick([...TIT, ...(pf.dj ? TIT_DJ : []), ...(pf.foto ? TIT_FOTO : []), ...(pf.p360 ? TIT_360 : [])])([a1, a2]);
     const por = e.creadoPor ? `${e.creadoPor} ha cerrado ` : "";
     const cuerpo = `${por}${e.novios} · ${fecha(e.fecha)}${e.lugar ? " · " + e.lugar : ""}`;
     const url = HOME + "#evento-" + encodeURIComponent(d.id);
@@ -140,6 +142,13 @@ async function push(title, body, url, tag){
   console.log(`Push (${tag ? tag.split("-")[0] : "aviso"}): ${r.successCount} enviadas, ${r.failureCount} fallidas`);
   await Promise.all(r.responses.map((x, i) => !x.success && /registration-token-not-registered|invalid-argument/.test(x.error?.code || "") ? db.collection("push").doc(_tokens[i]).delete() : null));
 }
+/* ---------- Qué servicios lleva un evento (para que los textos encajen: sin DJ no se "pincha") ---------- */
+function perfil(e){
+  const n = (e.servicios || []).map(s => s.nombre || "").join(" | ").toLowerCase();
+  const p = { dj: /\bdj\b|complet/.test(n), foto: /fotomat|photo|complet/.test(n), p360: /360|complet/.test(n), efectos: /fuego|chispa|humo|co2|burbuj/.test(n) };
+  p.cosa = p.foto && p.p360 ? "el fotomatón y la plataforma 360" : p.foto ? "el fotomatón" : p.p360 ? "la plataforma 360" : p.efectos ? "los efectos" : "el evento";
+  return p;
+}
 const linkEv = id => HOME + "#evento-" + encodeURIComponent(id);
 const faltan = n => n === 0 ? "hoy" : n === 1 ? "mañana" : `en ${n} días`;
 const diasHasta = f => Math.round((new Date(f + "T12:00:00Z") - new Date(hoyMadrid() + "T12:00:00Z")) / 864e5);
@@ -169,7 +178,7 @@ const T_TAREAS = [
   (e, n) => `📋 ${n > 1 ? n + " tareas" : "Una tarea"} esperando por ti · ${e.novios}`,
   (e) => `☕ Café y a tachar cosas: ${e.novios}`,
   (e, n, d) => `🚦 ${e.novios} ${faltan(d)}: semáforo en ámbar`,
-  (e) => `🎧 Antes de poner música, esto: ${e.novios}`,
+  (e) => perfil(e).dj ? `🎧 Antes de poner música, esto: ${e.novios}` : `📸 Antes del primer flash, esto: ${e.novios}`,
   (e) => `💪 Un empujón y lo tienes · ${e.novios}`,
   (e, n, d) => `📅 Faltan ${d} días para ${e.novios} y la lista no está a cero`,
   (e) => `🔔 Toc, toc… tareas de ${e.novios}`,
@@ -290,18 +299,44 @@ if (!eventos.length) { console.log("Nada que avisar."); process.exit(0); }
 
 /* ---------- Textos ---------- */
 const uno = eventos.length === 1, e0 = eventos[0];
+const PF = eventos.map(perfil), todosDJ = PF.every(p => p.dj), ningunDJ = PF.every(p => !p.dj);
+const tono = todosDJ ? "dj" : ningunDJ ? "foto" : "mixto";        // mixto = esa semana hay de todo
+const n0 = e0.novios, p0 = PF[0], cosa = p0.cosa, N = eventos.length;
 const TITULOS = {
-  semana: uno ? [`¡Semana de fiesta! 🎧 ${e0.novios} te espera`, `Esta semana hay música: ${e0.novios} 🎶`, `Se viene un buen sarao 🥂 ${e0.novios}`, `Esta semana se casa alguien… y tú pinchas 💍 ${e0.novios}`, `Marca el finde en rojo 🔴 ${e0.novios}`, `Lunes con planazo a la vista 🪩 ${e0.novios}`, `Semana de las buenas ✨ ${e0.novios}`, `Afina los cascos 🎧 ${e0.novios} está al caer`]
-              : [`¡Semana movida! 🎧 ${eventos.length} eventos a la vista`, `${eventos.length} fiestas esta semana 🔥 ¡a por todas!`, `Agenda llena de baile 💃 ${eventos.length} eventos`, `Doblete (o más) esta semana 🏆 ${eventos.length} eventos`, `Semana de las intensas ⚡ ${eventos.length} eventos`, `Que no pare la música 🎶 ${eventos.length} eventos esta semana`, `Furgo cargada toda la semana 🚐 ${eventos.length} eventos`],
-  manana: [`¡Mañana toca! 🎉 ${e0.novios}`, `Calienta motores 🚐 mañana ${e0.novios}`, `Prepara la cabina 🎛️ mañana ${e0.novios}`, `Cuenta atrás: 24 h para ${e0.novios} ⏳`, `Mañana se lía 🪩 ${e0.novios}`, `Carga baterías (y la furgo) 🔋 ${e0.novios}`, `Último ensayo mental 🧠 mañana ${e0.novios}`, `Mañana, a llenar la pista 💃 ${e0.novios}`, `El gran día es mañana 💍 ${e0.novios}`, `Duerme bien, que mañana hay fiesta 😴🎉 ${e0.novios}`],
+  semana: uno ? {
+      dj:   [`¡Semana de fiesta! 🎧 ${n0} te espera`, `Esta semana hay música: ${n0} 🎶`, `Se viene un buen sarao 🥂 ${n0}`, `Esta semana se casa alguien… y tú pinchas 💍 ${n0}`, `Marca el finde en rojo 🔴 ${n0}`, `Lunes con planazo a la vista 🪩 ${n0}`, `Semana de las buenas ✨ ${n0}`, `Afina los cascos 🎧 ${n0} está al caer`],
+      foto: [`Esta semana hay ${p0.p360 && !p0.foto ? "plataforma 360 🌀" : "fotomatón 📸"}: ${n0}`, `Semana de recuerdos 📸 ${n0} te espera`, `Se viene un buen sarao 🥂 ${n0}`, `Esta semana se casa alguien… y tú te encargas de los recuerdos 💍 ${n0}`, `Marca el finde en rojo 🔴 ${n0}`, `Semana de las buenas ✨ ${n0}`, `Flashes a la vista ⚡ ${n0}`, ...(p0.p360 ? [`Esta semana gira la plataforma 🌀 ${n0}`] : []), ...(p0.foto ? [`Prepara la cámara 📷 esta semana: ${n0}`] : [])]
+    }[tono === "dj" ? "dj" : "foto"]
+    : {
+      dj:    [`¡Semana movida! 🎧 ${N} eventos a la vista`, `${N} fiestas esta semana 🔥 ¡a por todas!`, `Agenda llena de baile 💃 ${N} eventos`, `Doblete (o más) esta semana 🏆 ${N} eventos`, `Semana de las intensas ⚡ ${N} eventos`, `Que no pare la música 🎶 ${N} eventos esta semana`, `Furgo cargada toda la semana 🚐 ${N} eventos`],
+      foto:  [`Semana de flashes 📸 ${N} eventos a la vista`, `${N} eventos esta semana 🔥 ¡a por todas!`, `Doblete (o más) esta semana 🏆 ${N} eventos`, `Semana de las intensas ⚡ ${N} eventos`, `Muchos recuerdos que imprimir 📸 ${N} eventos`, `Furgo cargada toda la semana 🚐 ${N} eventos`],
+      mixto: [`¡Semana movida! ✨ ${N} eventos a la vista`, `${N} eventos esta semana 🔥 ¡a por todas!`, `Doblete (o más) esta semana 🏆 ${N} eventos`, `Semana de las intensas ⚡ ${N} eventos`, `Furgo cargada toda la semana 🚐 ${N} eventos`, `Agenda a tope 📅 ${N} eventos esta semana`]
+    }[tono],
+  manana: {
+    dj:    [`¡Mañana toca! 🎉 ${n0}`, `Calienta motores 🚐 mañana ${n0}`, `Prepara la cabina 🎛️ mañana ${n0}`, `Cuenta atrás: 24 h para ${n0} ⏳`, `Mañana se lía 🪩 ${n0}`, `Carga baterías (y la furgo) 🔋 ${n0}`, `Último ensayo mental 🧠 mañana ${n0}`, `Mañana, a llenar la pista 💃 ${n0}`, `El gran día es mañana 💍 ${n0}`, `Duerme bien, que mañana hay fiesta 😴🎉 ${n0}`],
+    foto:  [`¡Mañana toca! 🎉 ${n0}`, `Calienta motores 🚐 mañana ${n0}`, `Cuenta atrás: 24 h para ${n0} ⏳`, `Carga baterías (y la furgo) 🔋 ${n0}`, `El gran día es mañana 💍 ${n0}`, `Duerme bien, que mañana hay fiesta 😴🎉 ${n0}`, `Mañana, flashes y risas 📸 ${n0}`, ...(p0.foto ? [`Prepara la cámara 📷 mañana ${n0}`, `Revisa papel y álbum 📖 mañana ${n0}`] : []), ...(p0.p360 ? [`Mañana gira la plataforma 🌀 ${n0}`] : [])],
+    mixto: [`¡Mañana toca! 🎉 ${N > 1 ? N + " eventos" : n0}`, `Calienta motores 🚐 mañana`, `Cuenta atrás: 24 h ⏳`, `Carga baterías (y la furgo) 🔋`, `Mañana es el día 💍`]
+  }[tono],
   prueba: [`Prueba de avisos NoelEvents ✨`]
 };
 const INTROS = {
-  semana: ["Lunes de café y planificación ☕ Esto es lo que suena esta semana:", "Nueva semana, nuevas pistas de baile llenas. Apunta:", "Se acerca el finde y hay faena de la buena:", "Tu secretaria te ha preparado el plan de la semana 😇:", "Para empezar la semana con todo bajo control:", "Esto es lo que te espera (y va a sonar de maravilla):", "Repaso semanal, sin sustos:"],
-  manana: ["Mañana alguien se casa y tú pones la banda sonora. Repaso rápido:", "Último repaso antes del gran día:", "Que no se te olvide nada, que mañana es el día:", "Checklist de víspera, que mañana no hay tiempo:", "Mañana te toca brillar. Aquí tienes lo importante:", "Antes de dormir, un vistazo rápido:", "Todo lo que necesitas para mañana, en un momento:"],
+  semana: {
+    dj:    ["Lunes de café y planificación ☕ Esto es lo que suena esta semana:", "Nueva semana, nuevas pistas de baile llenas. Apunta:", "Se acerca el finde y hay faena de la buena:", "Tu secretaria te ha preparado el plan de la semana 😇:", "Para empezar la semana con todo bajo control:", "Esto es lo que te espera (y va a sonar de maravilla):", "Repaso semanal, sin sustos:"],
+    foto:  ["Lunes de café y planificación ☕ Esto es lo que te espera esta semana:", "Nueva semana, nuevos recuerdos que imprimir. Apunta:", "Se acerca el finde y hay faena de la buena:", "Tu secretaria te ha preparado el plan de la semana 😇:", "Para empezar la semana con todo bajo control:", "Repaso semanal, sin sustos:"],
+    mixto: ["Lunes de café y planificación ☕ Esto es lo que te espera esta semana:", "Se acerca el finde y hay faena de la buena:", "Tu secretaria te ha preparado el plan de la semana 😇:", "Para empezar la semana con todo bajo control:", "Repaso semanal, sin sustos:"]
+  }[tono],
+  manana: {
+    dj:    ["Mañana alguien se casa y tú pones la banda sonora. Repaso rápido:", "Último repaso antes del gran día:", "Que no se te olvide nada, que mañana es el día:", "Checklist de víspera, que mañana no hay tiempo:", "Mañana te toca brillar. Aquí tienes lo importante:", "Antes de dormir, un vistazo rápido:", "Todo lo que necesitas para mañana, en un momento:"],
+    foto:  [`Mañana alguien se casa y tú te encargas de ${cosa}. Repaso rápido:`, "Último repaso antes del gran día:", "Que no se te olvide nada, que mañana es el día:", "Antes de dormir, un vistazo rápido:", "Todo lo que necesitas para mañana, en un momento:", ...(p0.foto ? ["Checklist de víspera: cámara, papel, álbum y atrezzo:"] : []), ...(p0.p360 ? ["Checklist de víspera: plataforma, móvil cargado y QR:"] : [])],
+    mixto: ["Último repaso antes del gran día:", "Que no se te olvide nada, que mañana es el día:", "Antes de dormir, un vistazo rápido:", "Todo lo que necesitas para mañana, en un momento:"]
+  }[tono],
   prueba: ["Si estás leyendo esto, los avisos funcionan. Así se verán tus próximos eventos:"]
 };
-const CIERRES = ["¡A darlo todo! 🕺", "¡Que retumbe la pista! 🔊", "Música, maestro 🎶", "¡A hacer historia en la pista! ✨", "¡Que nadie se quede sentado! 💃", "Hoy por ellos, mañana por la pista 🪩", "¡A por la mejor fiesta del año! 🏆", "Que suene fuerte y bonito 🎧", "Y que vivan los novios 🥂"];
+const CIERRES = {
+  dj:    ["¡A darlo todo! 🕺", "¡Que retumbe la pista! 🔊", "Música, maestro 🎶", "¡A hacer historia en la pista! ✨", "¡Que nadie se quede sentado! 💃", "Hoy por ellos, mañana por la pista 🪩", "¡A por la mejor fiesta del año! 🏆", "Que suene fuerte y bonito 🎧", "Y que vivan los novios 🥂"],
+  foto:  ["¡Que no pare el flash! 📸", "Sonrisas, poses y recuerdos ✨", "¡Que nadie se vaya sin su foto! 📷", "¡A por los mejores recuerdos! 🏆", "Y que vivan los novios 🥂", ...(PF.some(p => p.foto) ? ["¡A llenar el álbum de firmas! ✍️"] : []), ...(PF.some(p => p.p360) ? ["¡Que gire la plataforma! 🌀"] : [])],
+  mixto: ["¡A darlo todo! 💪", "¡A por la mejor fiesta del año! 🏆", "Y que vivan los novios 🥂", "¡Que salga todo redondo! ✨", "¡A por ello! 🚀"]
+}[tono];
 
 const linea = e => {
   const h = e.horario || {}, pend = Math.max(0, total(e) - pagado(e)), c = e.costes || {};
