@@ -303,6 +303,17 @@ nav.tabs .fab svg{width:24px;height:24px}
 #carga .cg-it.on .tx{color:var(--dim);text-decoration:line-through}
 #carga .cg-it.opt .tx{color:var(--ink2)}
 #carga .cg-it .tx small{display:block;margin-top:3px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);text-decoration:none}
+.pres-back{display:block;margin:0 0 14px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.pres-list{display:flex;flex-direction:column;margin-top:16px}
+.pres-it{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.pres-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;text-align:left}
+.pres-main .pn{font-family:'Cormorant Garamond',serif;font-size:22px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pres-main .pm{font-size:12.5px;color:var(--dim)}
+.pres-main .pm b{color:var(--gold);font-weight:500}
+.chip-st{display:inline-block;padding:2px 8px;border:1px solid var(--line2);font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+.chip-st.ok{border-color:var(--gold);color:var(--gold)}
+.pres-acts{display:flex;gap:6px;flex-shrink:0}
+.pres-del.sure{border-color:#C0645A;color:#E08B80;font-size:11px}
 .pres-l{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-bottom:1px solid var(--line)}
 .pres-r{display:grid;grid-template-columns:1fr 92px 46px;gap:8px;align-items:center}
 .pres-l input,.pres-r input{width:100%;min-width:0}
@@ -647,7 +658,7 @@ async function buildCatalog(t, dossier, lang = "es"){
   pdf.setProperties(t.marca === "events" ? { title: TX.title + " Noel Events 2027", author: "Noel Events" } : { title: TX.title + " Noel DJ 2027", author: "Noel DJ · Music & Events" });
   return pdf.output("blob");
 }
-const catKey = t => JSON.stringify([t.precios, t.servicios || null, t.marca || "dj", dossierBase(), catLang(), 5]);
+const catKey = t => JSON.stringify([t.precios, t.servicios || null, t.marca || "dj", dossierBase(), catLang(), 6]);
 // Enlace directo a la web en vídeo (con la marca, servicios e idioma de la tarifa)
 async function webDo(modo, t){
   const lang = catLang(), url = dossierLink(dossierBase(), t, null, lang) || DOSSIER_DEF;
@@ -665,8 +676,8 @@ function catPanel(){
     <div class="cat-list">${ts.map(t => { const ready = catCache[t.id] && catCache[t.id].key === catKey(t);
       return `<div class="cat-row"><div class="cat-info"><span class="cat-name">${esc(t.nombre)}</span><span class="cat-sub">${esc(resumen(t))}</span></div>
       <button class="btn sm ${ready ? "primary" : ""} tap cat-btn" data-act="cat" data-v="${t.id}">${ready ? I.wa + " Compartir" : I.pdf + " Preparar"}</button></div>`; }).join("")}</div>
-    <div class="cat-row cat-pres"><div class="cat-info"><span class="cat-name">Presupuesto</span><span class="cat-sub">PDF a medida · servicios, notas e IVA</span></div>
-      <button class="btn sm tap cat-btn" data-act="presnew">${I.pdf} Crear</button></div>
+    <div class="cat-row cat-pres"><div class="cat-info"><span class="cat-name">Presupuestos</span><span class="cat-sub">${(() => { const n = presOrden().length; return n ? `${n} guardado${n > 1 ? "s" : ""} · PDF a medida` : "PDF a medida · servicios, notas e IVA"; })()}</span></div>
+      <button class="btn sm tap cat-btn" data-act="preslist">${I.pdf} Abrir</button></div>
     <div class="cat-row cat-web"><div class="cat-info"><span class="cat-name">Web en vídeo</span><span class="cat-sub">Bodas reales · ${catLang() === "ca" ? "en catalán" : "en castellano"}</span></div>
       <button class="btn sm tap cat-btn" data-act="webshare">${I.wa} Compartir</button></div>
     <p class="sub" style="margin:0;line-height:1.5">El archivo no lleva el nombre de la tarifa: los novios no saben cuál les envías.</p></div>`;
@@ -1162,7 +1173,8 @@ function openSheet(title, body, foot){
   const sh = $("#sheet"), sc = $("#scrim");
   if (sh.hidden) { sh.hidden = false; sc.hidden = false; requestAnimationFrame(()=>requestAnimationFrame(()=>{ sh.classList.add("on"); sc.classList.add("on"); })); $("#sheetBody").scrollTop = 0; document.body.style.overflow = "hidden"; }
 }
-function closeSheet(){ const sh = $("#sheet"), sc = $("#scrim"); sh.classList.remove("on"); sc.classList.remove("on"); sh.style.transform = ""; document.body.style.overflow = ""; S.sheetMode = null; S.editing = null; S.sheetId = null; setTimeout(()=>{ if (!sh.classList.contains("on")) { sh.hidden = true; sc.hidden = true; } }, 480); }
+function closeSheet(){ if (S.sheetMode === "pres" && S.pres) { try { collectPres(); presGuardarNube(S.pres); } catch(_){} }
+  const sh = $("#sheet"), sc = $("#scrim"); sh.classList.remove("on"); sc.classList.remove("on"); sh.style.transform = ""; document.body.style.overflow = ""; S.sheetMode = null; S.editing = null; S.sheetId = null; setTimeout(()=>{ if (!sh.classList.contains("on")) { sh.hidden = true; sc.hidden = true; } }, 480); }
 
 /* ---------- Detalle de evento ---------- */
 function openDetail(id){
@@ -1553,7 +1565,34 @@ const PRES_TX = {
 };
 const presNuevo = () => ({ cliente:"", fecha:"", lugar:"", lang: catLang(), tipo:"boda", iva:false, lineas:[], obs:"" });
 function presLoad(){ try { const v = JSON.parse(localStorage.getItem("ne_pres") || "null"); if (v && Array.isArray(v.lineas)) return v; } catch(_){} return presNuevo(); }
-function presSave(){ try { localStorage.setItem("ne_pres", JSON.stringify(S.pres)); } catch(_){} }
+function presSave(){ try { localStorage.setItem("ne_pres", JSON.stringify(S.pres)); } catch(_){} presAutoNube(); }
+// Presupuestos guardados (documento config/presupuestos → { items: { id: presupuesto } }), compartidos entre los dos móviles
+const presOrden = () => Object.values(S.presItems || {}).filter(Boolean).sort((a, b) => String(b.actualizado||"").localeCompare(String(a.actualizado||"")));
+const presTieneAlgo = b => !!(b && (String(b.cliente||"").trim() || (b.lineas||[]).some(l => String(l.nombre||"").trim())));
+function presGuardarNube(b){
+  if (!S.db || !presTieneAlgo(b)) return false;
+  const ahora = new Date().toISOString();
+  if (!b.id) { b.id = uid(); b.creado = ahora; b.autor = (S.me && S.me.nombre) || ""; }
+  b.actualizado = ahora;
+  const items = { ...(S.presItems || {}) }; items[b.id] = clone(b); S.presItems = items;
+  write(S.db.doc("config/presupuestos").set({ items }), "guardar el presupuesto");
+  return true;
+}
+let presT = null;
+function presAutoNube(){ clearTimeout(presT); presT = setTimeout(() => { if (S.sheetMode === "pres" && S.pres) presGuardarNube(S.pres); }, 1500); }
+function presBorrar(id){ const items = { ...(S.presItems || {}) }; delete items[id]; S.presItems = items; if (S.pres && S.pres.id === id) S.pres = null; if (S.db) write(S.db.doc("config/presupuestos").set({ items }), "borrar el presupuesto"); }
+function presListBody(){
+  const L = presOrden();
+  return `<button class="btn primary tap" data-act="presnew" style="width:100%">${I.plus} Nuevo presupuesto</button>
+    ${L.length ? `<div class="pres-list">${L.map(b => { const t = presTotales(b), d = parseD(b.fecha);
+      return `<div class="pres-it">
+        <button class="pres-main tap" data-act="presedit" data-id="${b.id}"><span class="pn">${esc(b.cliente || "Sin nombre")}</span>
+          <span class="pm">${d ? fmtShort(b.fecha) : "Sin fecha"}${b.lugar ? " · " + esc(b.lugar) : ""}</span>
+          <span class="pm"><b>${eur(t.total)}</b>${b.iva ? " IVA incl." : ""} · <span class="chip-st ${b.enviado ? "ok" : ""}">${b.enviado ? "PDF enviado" : "Borrador"}</span>${(b.tipo||"boda") !== "boda" ? " · Otro evento" : ""}</span></button>
+        <div class="pres-acts"><button class="btn sm ghost tap" data-act="presdl" data-id="${b.id}" aria-label="Descargar PDF">${I.pdf}</button><button class="btn sm ghost tap pres-del" data-act="presdel" data-id="${b.id}" aria-label="Borrar">${I.trash || I.x}</button></div>
+      </div>`; }).join("")}</div>` : `<p class="sub" style="margin:18px 0 0;line-height:1.6">Aún no hay presupuestos guardados. Los que crees se guardan solos mientras escribes, y los veis los dos.</p>`}`;
+}
+function openPresList(){ if (S.sheetMode === "pres" && S.pres) { collectPres(); presGuardarNube(S.pres); } S.sheetMode = "preslist"; S.pres = null; openSheet("Presupuestos", presListBody()); }
 const presSub = b => b.lineas.reduce((a, l) => a + num(l.precio), 0);
 const r2 = x => Math.round(x * 100) / 100;
 function presTotales(b){ const base = r2(presSub(b)), iva = b.iva ? r2(base * .21) : 0; return { base, iva, total: r2(base + iva) }; }
@@ -1569,6 +1608,7 @@ function collectPres(){
 function presBody(){
   const b = S.pres, t = presTotales(b);
   return `<form id="presForm" onsubmit="return false">
+    <button type="button" class="pres-back tap" data-act="preslist">‹ Todos los presupuestos</button>
     <div class="between" style="margin-bottom:6px"><span class="sub" style="margin:0">Idioma del PDF</span><div class="seg" role="tablist">${[["es","Castellano"],["ca","Català"]].map(([k,v]) => `<button type="button" class="tap ${b.lang===k?"on":""}" data-act="preslang" data-v="${k}">${v}</button>`).join("")}</div></div>
     <div class="grid2">
       <div class="between" style="grid-column:1/-1"><span class="sub" style="margin:0">Tipo de evento</span><div class="seg" role="tablist">${[["boda","Boda"],["otro","Otro evento"]].map(([k,v]) => `<button type="button" class="tap ${(b.tipo||"boda")===k?"on":""}" data-act="prestipo" data-v="${k}">${v}</button>`).join("")}</div></div>
@@ -1587,11 +1627,13 @@ function presBody(){
     <label class="f" style="margin-top:18px"><span>Observaciones generales</span><textarea data-p="obs" rows="3" placeholder="Opcional">${esc(b.obs)}</textarea></label>
     <label class="pres-iva tap"><input type="checkbox" data-p="iva" ${b.iva ? "checked" : ""}><span>Añadir IVA (21 %)</span></label>
     <div class="pres-tot" id="presTot">${presTotHTML(t, b.iva)}</div>
-    <button type="button" class="btn ghost sm tap" data-act="presreset" style="margin-top:12px">Empezar uno nuevo</button>
+    <p class="sub" style="margin:12px 0 0">${b.id ? "Se guarda solo mientras escribes." : "Se guardará solo en cuanto escribas el cliente o un servicio."}</p>
   </form>`;
 }
 const presTotHTML = (t, iva) => (iva ? `<div class="r"><span>Base</span><span>${eur(t.base)}</span></div><div class="r"><span>IVA 21 %</span><span>${eur(t.iva)}</span></div>` : "") + `<div class="r big"><span>Total</span><span>${eur(t.total)}</span></div>`;
-function openPres(){ S.pres = S.pres || presLoad(); S.sheetMode = "pres"; openSheet("Presupuesto", presBody(), `<button class="btn primary tap" id="presPdfBtn" data-act="prespdf">${I.pdf} Crear PDF y compartir</button>`); }
+function openPres(b){ S.pres = b ? clone(b) : presNuevo(); S.sheetMode = "pres"; presSaveLocal();
+  openSheet("Presupuesto", presBody(), `<div class="row" style="gap:10px;width:100%"><button class="btn ghost tap" data-act="pressave" style="flex:1">Guardar</button><button class="btn primary tap" id="presPdfBtn" data-act="prespdf" style="flex:1.4">${I.pdf} PDF y compartir</button></div>`); }
+function presSaveLocal(){ try { localStorage.setItem("ne_pres", JSON.stringify(S.pres)); } catch(_){} }
 function presRefresh(){ const sb = $("#sheetBody"), st = sb.scrollTop; sb.innerHTML = presBody(); sb.scrollTop = st; }
 function presupuestoHTML(b){
   const lang = b.lang === "ca" ? "ca" : "es", T = PRES_TX[lang], R = TX[lang], c = S.cfg.contacto || {}, t = presTotales(b);
@@ -1643,6 +1685,7 @@ async function presPdf(){
   const btn = $("#presPdfBtn"); if (btn) { btn.disabled = true; btn.innerHTML = "Generando…"; }
   try {
     const T = PRES_TX[b.lang === "ca" ? "ca" : "es"];
+    b.enviado = new Date().toISOString(); presGuardarNube(b);
     const blob = await pdfDesdeHTML(presupuestoHTML(b), { title: `${T.pres} ${b.cliente}`, author: (S.cfg.contacto||{}).firma || "Noel DJ" });
     await saveFile(`${T.file} ${b.cliente || ""}${b.fecha ? " " + b.fecha : ""}.pdf`.replace(/[\\/:*?"<>|]/g,"").replace(/\s+/g," ").trim(), blob, "Presupuesto listo.", true);
   } catch(err){ console.log("[NoelEvents] pres", err); toast("No se ha podido crear el PDF. Inténtalo otra vez."); }
@@ -1730,7 +1773,16 @@ document.addEventListener("click", async ev => {
     case "pdfpanel": { const p = $("#pdfPanel"); p.hidden = !p.hidden; if (!p.hidden) p.scrollIntoView({behavior:"smooth", block:"nearest"}); break; }
     case "plang": S.pdfLang = a.dataset.v; a.parentNode.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b===a)); break;
     case "mkpdf": { const e = S.events.find(x=>x.id===id); S.pdfCond = $("#pdfCond").checked; await makePdf(e, S.pdfLang, S.pdfCond); break; }
-    case "presnew": buzz(); openPres(); break;
+    case "preslist": buzz(); openPresList(); break;
+    case "presnew": buzz(); openPres(null); break;
+    case "presedit": { const b = (S.presItems||{})[a.dataset.id]; if (b) { buzz(); openPres(b); } break; }
+    case "pressave": collectPres(); if (presGuardarNube(S.pres)) { toast("Presupuesto guardado."); openPresList(); } else toast("Escribe el cliente o añade un servicio para guardarlo."); break;
+    case "presdl": { const b = (S.presItems||{})[a.dataset.id]; if (!b) break; a.disabled = true;
+      try { const T = PRES_TX[b.lang === "ca" ? "ca" : "es"]; const blob = await pdfDesdeHTML(presupuestoHTML(b), { title: `${T.pres} ${b.cliente}` });
+        await saveFile(`${T.file} ${b.cliente || ""}${b.fecha ? " " + b.fecha : ""}.pdf`, blob, "Presupuesto listo.", true); } catch(err){ console.log("[NoelEvents] pres", err); toast("No se ha podido crear el PDF."); }
+      a.disabled = false; break; }
+    case "presdel": { if (!a.classList.contains("sure")) { a.classList.add("sure"); a.innerHTML = "¿Borrar?"; setTimeout(() => { if (a.isConnected) { a.classList.remove("sure"); a.innerHTML = I.trash || I.x; } }, 3500); break; }
+      presBorrar(a.dataset.id); toast("Presupuesto borrado."); $("#sheetBody").innerHTML = maskMoney(presListBody()); break; }
     case "prestipo": collectPres(); S.pres.tipo = a.dataset.v; presSave(); presRefresh(); break;
     case "preslang": collectPres(); S.pres.lang = a.dataset.v; presSave(); presRefresh(); break;
     case "presadd": { collectPres(); const q = QUICK[+a.dataset.i], P = preciosGeneral(), b = S.pres;
@@ -2095,6 +2147,9 @@ function startData(){
     render(first);
   }, err => { console.log("[NoelEvents] db", err); S.loaded = true; render(false); if (err && err.code === "permission-denied") wipeLocal("La sesión de este dispositivo se ha cerrado por seguridad. Vuelve a entrar."); });
   S.db.collection("usuarios").onSnapshot(snap => { S.users = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => String(a.nombre).localeCompare(String(b.nombre))); if (S.tab === "ajustes" && !(document.activeElement && document.activeElement.closest && document.activeElement.closest("#cfgForm"))) render(false); }, () => {});
+  S.db.doc("config/presupuestos").onSnapshot(snap => { S.presItems = snap.exists ? ((snap.data() || {}).items || {}) : {};
+    if (S.sheetMode === "preslist") $("#sheetBody").innerHTML = maskMoney(presListBody());
+    if (S.tab === "inicio" && !S.sheetMode) render(false); });
   S.db.doc("config/catalogos").onSnapshot(snap => { if (snap.exists) { const c = snap.data(); if (c && Array.isArray(c.tarifas) && c.tarifas.length) { S.cats = c; if ((c.v || 1) < 3) { const m = clone(c); m.v = 3; if (!m.tarifas.some(t => t.id === "torrens")) m.tarifas.push(clone(TORRENS)); m.tarifas.forEach(t => { if (t.id === "torrens" && !t.marca) t.marca = "events"; }); S.cats = m; write(S.db.doc("config/catalogos").set(m), "actualizar los catálogos"); } } } if (S.tab === "inicio" && !S.sheetMode) render(false); }, () => {});
   S.db.doc("config/ajustes").onSnapshot(snap => {
     if (snap.exists) { const c = snap.data(); S.cfg = Object.assign(clone(DEFAULT_CFG), clone(c)); S.cfg.costes = Object.assign({}, DEFAULT_CFG.costes, c.costes||{}); S.cfg.contacto = Object.assign({}, DEFAULT_CFG.contacto, c.contacto||{}); S.cfg.horasExtra = Object.assign({}, DEFAULT_CFG.horasExtra, c.horasExtra||{});
