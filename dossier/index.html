@@ -312,7 +312,7 @@ es:{
   heroEye:"Bodas · Lleida y Cataluña",
   heroH:"Noches que<br><em>se recuerdan</em>",
   heroP:"Música, fotomatón, plataforma 360 y efectos especiales para la fiesta de vuestra vida.",
-  cue:"Desliza", cue2:"Sigue deslizando",
+  bodasW:"Bodas", cue:"Desliza", cue2:"Sigue deslizando",
   manif:"No ponemos música. Creamos *la noche* que vuestros invitados recordarán durante años: sonido impecable, luz que acompaña cada momento y detalles que convierten una fiesta en *una historia.*",
   djEye:"Música", djH:"El ritmo lo marca<br><em>vuestra pista</em>",
   djP:"Leemos a los invitados en tiempo real. Cada canción llega en el momento justo, del primer baile al último tema.",
@@ -345,7 +345,7 @@ ca:{
   heroEye:"Casaments · Lleida i Catalunya",
   heroH:"Nits que<br><em>es recorden</em>",
   heroP:"Música, fotomatón, plataforma 360 i efectes especials per a la festa de la vostra vida.",
-  cue:"Llisca", cue2:"Continua lliscant",
+  bodasW:"Casaments", cue:"Llisca", cue2:"Continua lliscant",
   manif:"No posem música. Creem *la nit* que els vostres convidats recordaran durant anys: so impecable, llum que acompanya cada moment i detalls que converteixen una festa en *una història.*",
   djEye:"Música", djH:"El ritme el marca<br><em>la vostra pista</em>",
   djP:"Llegim els convidats en temps real. Cada cançó arriba al moment just, del primer ball a l’últim tema.",
@@ -475,8 +475,8 @@ const SC = {}; let at = 0;
 });
 const END = SC.mo.b;
 if (EV) {
-  $("#mark").innerHTML = 'Noel <b>Events</b><small>Bodas</small>';
-  $("#cMark").innerHTML = 'Noel <em>Events</em>'; document.querySelector("#curtain .s").textContent = "Bodas";
+  $("#mark").innerHTML = 'Noel <b>Events</b><small data-t="bodasW"></small>';
+  $("#cMark").innerHTML = 'Noel <em>Events</em>'; document.querySelector("#curtain .s").textContent = LANG === "ca" ? "Casaments" : "Bodas";
   $("#signN").textContent = "Noel Events"; $("#signS").textContent = "Fotomatón · Plataforma 360 · Lleida";
   document.title = "Noel Events · Experiencias";
 }
@@ -732,12 +732,6 @@ chap.querySelectorAll("button").forEach(b => b.onclick = () => {
 document.querySelector(".mark").onclick = e => { e.preventDefault(); scrollTo({top:0, behavior:"smooth"}); };
 
 layout(); applyLang(LANG);
-// Si esta web se abre dentro de la app instalada (versiones antiguas), botón para volver a la app
-if (matchMedia("(display-mode: standalone)").matches) {
-  const b = document.createElement("a"); b.href = "../index.html"; b.textContent = "← NoelEvents";
-  b.style.cssText = "position:fixed;z-index:61;left:50%;transform:translateX(-50%);top:calc(14px + env(safe-area-inset-top,0px));padding:8px 14px;border-radius:99px;background:rgba(17,15,12,.7);border:1px solid rgba(201,169,97,.4);color:#E2C88A;font:600 10px Montserrat,Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)";
-  document.body.appendChild(b);
-}
 const hv = $("#v-hero");
 const lift = () => { $("#curtain").classList.add("up"); setTimeout(()=>{$("#curtain").style.display="none"}, 1300); };
 let lifted = false; const go = () => { if (!lifted){ lifted = true; setTimeout(lift, 900); } };
