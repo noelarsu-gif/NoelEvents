@@ -303,6 +303,17 @@ nav.tabs .fab svg{width:24px;height:24px}
 #carga .cg-it.on .tx{color:var(--dim);text-decoration:line-through}
 #carga .cg-it.opt .tx{color:var(--ink2)}
 #carga .cg-it .tx small{display:block;margin-top:3px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);text-decoration:none}
+.pres-l{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-bottom:1px solid var(--line)}
+.pres-r{display:grid;grid-template-columns:1fr 92px 46px;gap:8px;align-items:center}
+.pres-l input,.pres-r input{width:100%;min-width:0}
+.pres-l .nota{min-height:40px;font-size:14px;color:var(--ink2)}
+.pres-r .iconbtn{width:46px;height:46px}
+.pres-iva{display:flex;align-items:center;gap:12px;padding:14px 0;font-size:15px}
+.pres-iva input{width:24px;height:24px;accent-color:var(--gold)}
+.pres-tot{border-top:1px solid var(--line2);padding-top:10px}
+.pres-tot .r{display:flex;justify-content:space-between;padding:6px 0;color:var(--dim)}
+.pres-tot .r.big{color:var(--ink);font-size:20px}
+.pres-tot .r.big span:last-child{color:var(--gold)}
 .carga-btn{display:flex;align-items:center;gap:14px;width:100%;padding:14px;border:1px solid var(--line2);text-align:left}
 .carga-btn .cb-n{min-width:52px;height:52px;display:flex;align-items:center;justify-content:center;border:1px solid var(--gold);color:var(--gold);font-size:20px;font-weight:600}
 .carga-btn .cb-n small{font-size:12px;color:var(--dim);font-weight:400}
@@ -323,10 +334,10 @@ nav.tabs .fab svg{width:24px;height:24px}
 .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .f{display:flex;flex-direction:column;gap:6px;min-width:0}
 .f>span{font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);font-weight:500}
-.f input,.f select,.f textarea,.line input,.line select{width:100%;min-height:46px;background:var(--bg);border:1px solid var(--line2);padding:0 12px;border-radius:0;font-size:16px;-webkit-appearance:none;appearance:none}
+.f input,.f select,.f textarea,.line input,.line select,.pres-l input{width:100%;min-height:46px;background:var(--bg);border:1px solid var(--line2);padding:0 12px;border-radius:0;font-size:16px;-webkit-appearance:none;appearance:none}
 .f textarea{padding:12px;min-height:84px;resize:vertical;line-height:1.5}
 .f select,.line select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:30px}
-.f input:focus,.f select:focus,.f textarea:focus,.line input:focus{border-color:var(--gold);outline:0}
+.f input:focus,.f select:focus,.f textarea:focus,.line input:focus,.pres-l input:focus{border-color:var(--gold);outline:0}
 .line{display:grid;gap:8px;align-items:center}
 .line.l2{grid-template-columns:minmax(0,1fr) 110px 44px}
 .line.l3{grid-template-columns:120px minmax(0,1fr) 110px 44px}
@@ -654,6 +665,8 @@ function catPanel(){
     <div class="cat-list">${ts.map(t => { const ready = catCache[t.id] && catCache[t.id].key === catKey(t);
       return `<div class="cat-row"><div class="cat-info"><span class="cat-name">${esc(t.nombre)}</span><span class="cat-sub">${esc(resumen(t))}</span></div>
       <button class="btn sm ${ready ? "primary" : ""} tap cat-btn" data-act="cat" data-v="${t.id}">${ready ? I.wa + " Compartir" : I.pdf + " Preparar"}</button></div>`; }).join("")}</div>
+    <div class="cat-row cat-pres"><div class="cat-info"><span class="cat-name">Presupuesto</span><span class="cat-sub">PDF a medida · servicios, notas e IVA</span></div>
+      <button class="btn sm tap cat-btn" data-act="presnew">${I.pdf} Crear</button></div>
     <div class="cat-row cat-web"><div class="cat-info"><span class="cat-name">Web en vídeo</span><span class="cat-sub">Bodas reales · ${catLang() === "ca" ? "en catalán" : "en castellano"}</span></div>
       <button class="btn sm tap cat-btn" data-act="webshare">${I.wa} Compartir</button></div>
     <p class="sub" style="margin:0;line-height:1.5">El archivo no lleva el nombre de la tarifa: los novios no saben cuál les envías.</p></div>`;
@@ -1426,7 +1439,7 @@ function svcInfo(name, lang){
   if (/humo|fum/.test(n)) out.push(K("humo", lang==="ca" ? ["Fum de colors","Les fotos que tothom voldrà compartir.",["Fum aeri de colors","4 colors a escollir","Sortida de la cerimònia o sessió de fotos"]] : ["Humo de colores","Las fotos que todos querrán compartir.",["Humo aéreo de colores","4 colores a elegir","Salida de la ceremonia o sesión de fotos"]]));
   return out;
 }
-function trName(name, lang){ if (lang !== "ca") return name; return name.replace(/con fondo/gi,"amb fons").replace(/pack completo/gi,"Pack complet").replace(/humo de colores/gi,"fum de colors").replace(/fuegos? fríos?/gi,"focs freds").replace(/horas extra/gi,"hores extra").replace(/hora extra/gi,"hora extra").replace(/ceremonia/gi,"cerimònia").replace(/aperitivo/gi,"aperitiu").replace(/cóctel/gi,"còctel").replace(/banquete/gi,"banquet").replace(/(\d)\s*horas/gi,"$1 hores").replace(/sin fondo/gi,"sense fons").replace(/solo fiesta/gi,"només festa").replace(/fiesta/gi,"festa").replace(/desplazamiento/gi,"desplaçament").replace(/ \+ /g," + ").replace(/^./, c => c.toUpperCase()); }
+function trName(name, lang){ if (lang !== "ca") return name; return name.replace(/tel[eé]fono audio-recuerdo/gi,"Telèfon àudio-record").replace(/con fondo/gi,"amb fons").replace(/pack completo/gi,"Pack complet").replace(/humo de colores/gi,"fum de colors").replace(/fuegos? fríos?/gi,"focs freds").replace(/horas extra/gi,"hores extra").replace(/hora extra/gi,"hora extra").replace(/ceremonia/gi,"cerimònia").replace(/aperitivo/gi,"aperitiu").replace(/cóctel/gi,"còctel").replace(/banquete/gi,"banquet").replace(/(\d)\s*horas/gi,"$1 hores").replace(/sin fondo/gi,"sense fons").replace(/solo fiesta/gi,"només festa").replace(/fiesta/gi,"festa").replace(/desplazamiento/gi,"desplaçament").replace(/ \+ /g," + ").replace(/^./, c => c.toUpperCase()); }
 function reservaHTML(e, lang, cond){
   const T = TX[lang], c = S.cfg.contacto||{}, d = parseD(e.fecha), h = e.horario||{};
   const parts = (e.novios||"").split(/\s+(?:i|y|&)\s+/i);
@@ -1484,50 +1497,161 @@ function reservaHTML(e, lang, cond){
   </div>`) : "";
   return p1 + p2 + p3;
 }
+// Convierte páginas .pp (794×1123) en un PDF. Los elementos con data-link="url" quedan clicables.
+async function pdfDesdeHTML(html, props){
+  if (!window.html2canvas || !window.jspdf) throw new Error("libs");
+  const host = $("#pdfhost"); host.innerHTML = html;
+  await Promise.all(['400 30px "Cormorant Garamond"','italic 400 30px "Cormorant Garamond"','400 30px "Playfair Display"','500 30px "Playfair Display"','300 12px Montserrat','400 12px Montserrat','600 12px Montserrat'].map(f=>document.fonts.load(f).catch(()=>{})));
+  await document.fonts.ready;
+  await Promise.all([...host.querySelectorAll("img")].map(im => im.complete ? 0 : new Promise(r => { im.onload = im.onerror = r; })));
+  // Foto entera si cabe; si la página se desborda, se reduce la altura y se recorta lo justo
+  host.querySelectorAll(".pp").forEach(pg => { const im = pg.querySelector("img[data-pos]"); if (!im) return;
+    pg.style.height = "auto"; const over = pg.scrollHeight - 1123; pg.style.height = "1123px";
+    if (over > 0) { im.style.height = Math.max(160, im.offsetHeight - over - 6) + "px"; im.style.objectFit = "cover"; im.style.objectPosition = im.dataset.pos; } });
+  // html2canvas ignora object-fit: recortamos cada foto a su hueco exacto antes de capturar
+  await Promise.all([...host.querySelectorAll("img")].map(im => new Promise(r => {
+    try {
+      const w = im.offsetWidth, h = im.offsetHeight, iw = im.naturalWidth, ih = im.naturalHeight;
+      if (!w || !h || !iw || !ih) return r();
+      const py = parseFloat((getComputedStyle(im).objectPosition.split(" ")[1]) || "50") / 100;
+      const scale = Math.max(w / iw, h / ih), sw = w / scale, sh = h / scale;
+      const sx = (iw - sw) / 2, sy = Math.min(ih - sh, Math.max(0, (ih - sh) * (isNaN(py) ? .5 : py)));
+      const cv = document.createElement("canvas"); cv.width = w * 2; cv.height = h * 2;
+      cv.getContext("2d").drawImage(im, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
+      im.onload = im.onerror = () => r(); im.style.objectFit = "fill"; im.src = cv.toDataURL("image/jpeg", 0.92);
+    } catch(_) { r(); }
+  })));
+  const pdf = new window.jspdf.jsPDF({ unit:"pt", format:"a4", compress:true });
+  const pages = [...host.querySelectorAll(".pp")], k = 595.28 / 794;
+  for (let i=0;i<pages.length;i++){
+    const pr = pages[i].getBoundingClientRect();
+    const links = [...pages[i].querySelectorAll("[data-link]")].map(el => { const r = el.getBoundingClientRect(); return [r.left - pr.left, r.top - pr.top, r.width, r.height, el.dataset.link]; });
+    const cv = await html2canvas(pages[i], { scale: 2, backgroundColor: "#0E0D0B", useCORS: true, logging: false, width: 794, height: 1123, windowWidth: 794 });
+    if (i) pdf.addPage("a4");
+    pdf.addImage(cv.toDataURL("image/jpeg", 0.9), "JPEG", 0, 0, 595.28, 841.89);
+    links.forEach(([x,y,w,h,url]) => pdf.link(x*k, y*k, w*k, h*k, { url }));
+  }
+  pdf.setProperties(props || {});
+  host.innerHTML = "";
+  return pdf.output("blob");
+}
 async function makePdf(e, lang, cond){
   const btn = $("#mkpdfBtn"); if (btn) { btn.disabled = true; btn.innerHTML = "Generando…"; }
   try {
-    if (!window.html2canvas || !window.jspdf) throw new Error("libs");
-    const host = $("#pdfhost"); host.innerHTML = reservaHTML(e, lang, cond);
-    await Promise.all(['400 30px "Cormorant Garamond"','italic 400 30px "Cormorant Garamond"','400 30px "Playfair Display"','500 30px "Playfair Display"','300 12px Montserrat','400 12px Montserrat','600 12px Montserrat'].map(f=>document.fonts.load(f).catch(()=>{})));
-    await document.fonts.ready;
-    await Promise.all([...host.querySelectorAll("img")].map(im => im.complete ? 0 : new Promise(r => { im.onload = im.onerror = r; })));
-    // Foto entera si cabe; si la página se desborda, se reduce la altura y se recorta lo justo
-    host.querySelectorAll(".pp").forEach(pg => { const im = pg.querySelector("img[data-pos]"); if (!im) return;
-      pg.style.height = "auto"; const over = pg.scrollHeight - 1123; pg.style.height = "1123px";
-      if (over > 0) { im.style.height = Math.max(220, im.offsetHeight - over - 6) + "px"; im.style.objectFit = "cover"; im.style.objectPosition = im.dataset.pos; } });
-    // html2canvas ignora object-fit: recortamos cada foto a su hueco exacto antes de capturar
-    await Promise.all([...host.querySelectorAll("img")].map(im => new Promise(r => {
-      try {
-        const w = im.offsetWidth, h = im.offsetHeight, iw = im.naturalWidth, ih = im.naturalHeight;
-        if (!w || !h || !iw || !ih) return r();
-        const py = parseFloat((getComputedStyle(im).objectPosition.split(" ")[1]) || "50") / 100;
-        const scale = Math.max(w / iw, h / ih), sw = w / scale, sh = h / scale;
-        const sx = (iw - sw) / 2, sy = Math.min(ih - sh, Math.max(0, (ih - sh) * (isNaN(py) ? .5 : py)));
-        const cv = document.createElement("canvas"); cv.width = w * 2; cv.height = h * 2;
-        cv.getContext("2d").drawImage(im, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
-        im.onload = im.onerror = () => r(); im.style.objectFit = "fill"; im.src = cv.toDataURL("image/jpeg", 0.92);
-      } catch(_) { r(); }
-    })));
-    const pdf = new window.jspdf.jsPDF({ unit:"pt", format:"a4", compress:true });
-    const pages = [...host.querySelectorAll(".pp")];
-    for (let i=0;i<pages.length;i++){
-      const cv = await html2canvas(pages[i], { scale: 2, backgroundColor: "#0E0D0B", useCORS: true, logging: false, width: 794, height: 1123, windowWidth: 794 });
-      if (i) pdf.addPage("a4");
-      pdf.addImage(cv.toDataURL("image/jpeg", 0.9), "JPEG", 0, 0, 595.28, 841.89);
-    }
-    pdf.setProperties({ title: `Reserva ${e.novios}`, author: (S.cfg.contacto||{}).firma || "Noel DJ" });
-    const blob = pdf.output("blob"); host.innerHTML = "";
-    const fn = `${lang==="ca"?"Reserva":"Reserva"} ${e.novios} ${e.fecha}.pdf`.replace(/[\\/:*?"<>|]/g,"");
+    const blob = await pdfDesdeHTML(reservaHTML(e, lang, cond), { title: `Reserva ${e.novios}`, author: (S.cfg.contacto||{}).firma || "Noel DJ" });
+    const fn = `Reserva ${e.novios} ${e.fecha}.pdf`.replace(/[\\/:*?"<>|]/g,"");
     await saveFile(fn, blob, "PDF descargado.", true);
   } catch(err){ console.log("[NoelEvents] pdf", err); toast("No se ha podido generar el PDF. Inténtalo otra vez."); }
   finally { if (btn) { btn.disabled = false; btn.innerHTML = I.pdf + " Generar y compartir"; } }
+}
+
+/* ============ Presupuestos ============ */
+const PRES_TX = {
+  es: { pres:"Presupuesto", data:"Fecha del evento", lloc:"Lugar", emes:"Fecha", serveis:"Servicios", base:"Base imponible", iva:"IVA (21 %)", total:"Total", obs:"Observaciones", gracies:"Será un placer formar parte de vuestro día.", webSub:"Bodas reales en vídeo", file:"Presupuesto" },
+  ca: { pres:"Pressupost", data:"Data de l’esdeveniment", lloc:"Lloc", emes:"Data", serveis:"Serveis", base:"Base imposable", iva:"IVA (21 %)", total:"Total", obs:"Observacions", gracies:"Serà un plaer formar part del vostre dia.", webSub:"Casaments reals en vídeo", file:"Pressupost" }
+};
+const presNuevo = () => ({ cliente:"", fecha:"", lugar:"", lang: catLang(), iva:false, lineas:[], obs:"" });
+function presLoad(){ try { const v = JSON.parse(localStorage.getItem("ne_pres") || "null"); if (v && Array.isArray(v.lineas)) return v; } catch(_){} return presNuevo(); }
+function presSave(){ try { localStorage.setItem("ne_pres", JSON.stringify(S.pres)); } catch(_){} }
+const presSub = b => b.lineas.reduce((a, l) => a + num(l.precio), 0);
+const r2 = x => Math.round(x * 100) / 100;
+function presTotales(b){ const base = r2(presSub(b)), iva = b.iva ? r2(base * .21) : 0; return { base, iva, total: r2(base + iva) }; }
+function collectPres(){
+  const b = S.pres; if (!b) return;
+  document.querySelectorAll("#presForm [data-p]").forEach(el => {
+    const k = el.dataset.p, v = el.type === "checkbox" ? el.checked : el.value;
+    const m = k.match(/^lineas\.(\d+)\.(\w+)$/);
+    if (m) { const l = b.lineas[+m[1]]; if (l) l[m[2]] = m[2] === "precio" ? v : v; } else b[k] = v;
+  });
+  presSave();
+}
+function presBody(){
+  const b = S.pres, t = presTotales(b);
+  return `<form id="presForm" onsubmit="return false">
+    <div class="between" style="margin-bottom:6px"><span class="sub" style="margin:0">Idioma del PDF</span><div class="seg" role="tablist">${[["es","Castellano"],["ca","Català"]].map(([k,v]) => `<button type="button" class="tap ${b.lang===k?"on":""}" data-act="preslang" data-v="${k}">${v}</button>`).join("")}</div></div>
+    <div class="grid2">
+      <label class="f" style="grid-column:1/-1"><span>Cliente</span><input data-p="cliente" value="${esc(b.cliente)}" placeholder="Ej. Laia i Pol" autocomplete="off"></label>
+      <label class="f"><span>Fecha del evento</span><input type="date" data-p="fecha" value="${esc(b.fecha)}"></label>
+      <label class="f"><span>Lugar</span><input data-p="lugar" value="${esc(b.lugar)}" placeholder="Opcional"></label>
+    </div>
+    <div class="fs"><div class="lt">Servicios</div>
+      <div class="chips">${QUICK.map((q,i) => `<button type="button" class="chip tap" data-act="presadd" data-i="${i}">+ ${q.nombre}</button>`).join("")}</div>
+      ${b.lineas.map((l,i) => `<div class="pres-l">
+        <div class="pres-r"><input data-p="lineas.${i}.nombre" value="${esc(l.nombre)}" placeholder="Servicio" aria-label="Servicio"><input data-p="lineas.${i}.precio" value="${esc(l.precio)}" inputmode="decimal" placeholder="€" aria-label="Precio" class="pr"><button type="button" class="iconbtn tap" data-act="presrm" data-i="${i}" aria-label="Quitar">${I.x}</button></div>
+        <input data-p="lineas.${i}.nota" value="${esc(l.nota||"")}" placeholder="Nota de este servicio (opcional)" class="nota" aria-label="Nota">
+      </div>`).join("")}
+      <button type="button" class="btn ghost tap" data-act="presline" style="margin-top:10px">${I.plus} Servicio a mano</button>
+    </div>
+    <label class="f" style="margin-top:18px"><span>Observaciones generales</span><textarea data-p="obs" rows="3" placeholder="Opcional">${esc(b.obs)}</textarea></label>
+    <label class="pres-iva tap"><input type="checkbox" data-p="iva" ${b.iva ? "checked" : ""}><span>Añadir IVA (21 %)</span></label>
+    <div class="pres-tot" id="presTot">${presTotHTML(t, b.iva)}</div>
+    <button type="button" class="btn ghost sm tap" data-act="presreset" style="margin-top:12px">Empezar uno nuevo</button>
+  </form>`;
+}
+const presTotHTML = (t, iva) => (iva ? `<div class="r"><span>Base</span><span>${eur(t.base)}</span></div><div class="r"><span>IVA 21 %</span><span>${eur(t.iva)}</span></div>` : "") + `<div class="r big"><span>Total</span><span>${eur(t.total)}</span></div>`;
+function openPres(){ S.pres = S.pres || presLoad(); S.sheetMode = "pres"; openSheet("Presupuesto", presBody(), `<button class="btn primary tap" id="presPdfBtn" data-act="prespdf">${I.pdf} Crear PDF y compartir</button>`); }
+function presRefresh(){ const sb = $("#sheetBody"), st = sb.scrollTop; sb.innerHTML = presBody(); sb.scrollTop = st; }
+function presupuestoHTML(b){
+  const lang = b.lang === "ca" ? "ca" : "es", T = PRES_TX[lang], R = TX[lang], c = S.cfg.contacto || {}, t = presTotales(b);
+  const fd = s => { const x = parseD(s); return x ? R.de(x.getDate(), R.mes[x.getMonth()], x.getFullYear()) : ""; };
+  const hoy = fd(todayIso());
+  const parts = (b.cliente||"").split(/\s+(?:i|y|&)\s+/i);
+  const names = parts.length === 2 ? `${esc(parts[0])} <span style="font-style:italic;color:#C9A961">${R.conj}</span> ${esc(parts[1])}` : esc(b.cliente || "—");
+  const ls = b.lineas.filter(l => String(l.nombre||"").trim() || num(l.precio));
+  const big = ls.length > 4, lab = x => `<p style="margin:0;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#9C958A">${x}</p>`;
+  const datos = [[T.data, fd(b.fecha)], [T.lloc, esc(b.lugar||"")], [T.emes, hoy]].filter(([,v]) => v);
+  const web = dossierLink(dossierBase(), { marca: "dj" }, null, lang);
+  const tel = "646 700 313", telNum = "34646700313";   // teléfono y WhatsApp del presupuesto
+  const wa = `https://wa.me/${telNum}?text=${encodeURIComponent(lang === "ca" ? `Hola Noel! Us escric pel pressupost${b.cliente ? " de " + b.cliente : ""}.` : `¡Hola Noel! Te escribo por el presupuesto${b.cliente ? " de " + b.cliente : ""}.`)}`;
+  const ph = [`<span style="color:#C9A961">${esc(tel)}</span>`, c.instagram && `<span>${esc(c.instagram)}</span>`].filter(Boolean).join(`<span style="color:#5f594f">·</span>`);
+  return `<div class="pp" style="width:794px;height:1123px;box-sizing:border-box;background:#060302;color:#F3EEE4;font-family:Montserrat,sans-serif;display:flex;flex-direction:column;overflow:hidden">
+    <img src="${lang === "ca" ? IMG.heroCa : IMG.hero}" data-pos="center 100%" style="width:794px;height:auto;display:block" alt="">
+    <div style="flex:1;display:flex;flex-direction:column;gap:${big?18:24}px;padding:30px 72px 40px">
+      <div style="display:flex;flex-direction:column;gap:12px"><p style="margin:0;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#C9A961;font-weight:600">${T.pres}</p>
+        <h1 style="margin:0;font-family:'Cormorant Garamond',serif;font-weight:400;font-size:${(b.cliente||"").length>24?50:62}px;line-height:1">${names}</h1></div>
+      ${datos.length ? `<div style="display:grid;grid-template-columns:${datos.map((d,i) => i === 1 ? "1.2fr" : "1fr").join(" ")};gap:24px;border-top:1px solid #3A342A;border-bottom:1px solid #3A342A;padding:20px 0">
+        ${datos.map(([k,v]) => `<div style="display:flex;flex-direction:column;gap:6px">${lab(k)}<p style="margin:0;font-family:'Playfair Display',serif;font-size:${big?21:23}px">${v}</p></div>`).join("")}</div>` : ""}
+      <div style="display:flex;flex-direction:column"><p style="margin:0 0 6px;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#9C958A">${T.serveis}</p>
+        ${ls.map(l => `<div style="display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding:${big?9:12}px 0;border-bottom:1px solid #2E2A22">
+          <div style="display:flex;flex-direction:column;gap:4px;min-width:0"><p style="margin:0;font-family:'Cormorant Garamond',serif;font-size:${big?26:31}px;line-height:1.1">${esc(trName(l.nombre||"", lang))}</p>${String(l.nota||"").trim() ? `<p style="margin:0;font-size:13px;line-height:1.5;color:#B9B2A6">${esc(l.nota)}</p>` : ""}</div>
+          <p style="margin:0;font-family:'Playfair Display',serif;font-size:${big?23:27}px;color:#C9A961;white-space:nowrap">${eur(num(l.precio))}</p></div>`).join("")}
+      </div>
+      ${String(b.obs||"").trim() ? `<div style="border:1px solid rgba(201,169,97,0.45);padding:18px 24px;display:flex;flex-direction:column;gap:8px"><p style="margin:0;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#C9A961;font-weight:600">${T.obs}</p><p style="margin:0;font-size:14px;line-height:1.6;white-space:pre-line">${esc(b.obs.trim())}</p></div>` : ""}
+      <div style="display:flex;justify-content:flex-end;align-items:stretch;gap:16px">
+        ${b.iva ? `<div style="display:flex;flex-direction:column;justify-content:center;gap:10px;min-width:230px">
+          <div style="display:flex;justify-content:space-between;gap:24px">${lab(T.base)}<p style="margin:0;font-family:'Playfair Display',serif;font-size:19px">${eur(t.base)}</p></div>
+          <div style="display:flex;justify-content:space-between;gap:24px">${lab(T.iva)}<p style="margin:0;font-family:'Playfair Display',serif;font-size:19px">${eur(t.iva)}</p></div></div>` : ""}
+        <div style="background:#C9A961;color:#0E0D0B;padding:14px 22px;min-width:220px;display:flex;flex-direction:column;gap:6px"><p style="margin:0;font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:600">${T.total}</p><p style="margin:0;font-family:'Playfair Display',serif;font-size:34px;font-weight:500">${eur(t.total)}</p></div>
+      </div>
+      <div style="margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:6px"><p style="margin:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px">${T.gracies}</p><p style="margin:0;font-size:12px;color:#B9B2A6">${esc(c.firma||"")}</p></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+          <div style="display:flex;gap:10px">
+            <span data-link="${esc(wa)}" style="display:inline-flex;align-items:center;gap:8px;background:#C9A961;padding:8px 14px"><svg width="15" height="15" viewBox="0 0 24 24" fill="#0E0D0B"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.4.8 3.2.6a2.8 2.8 0 0 0 1.8-1.3 2.3 2.3 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3z"/></svg><span style="font-size:12px;font-weight:600;letter-spacing:3px;color:#0E0D0B">WHATSAPP</span></span>
+            <span data-link="${esc(web)}" style="display:inline-flex;align-items:center;gap:10px;border:1px solid #C9A961;padding:8px 14px"><span style="font-size:12px;font-weight:600;letter-spacing:4px;color:#C9A961">WEB</span><span style="font-size:11px;color:#D8D2C6">${T.webSub}</span></span>
+          </div>
+          <div style="display:flex;gap:10px;font-size:13px">${ph}</div></div>
+      </div>
+    </div></div>`;
+}
+async function presPdf(){
+  collectPres(); const b = S.pres;
+  if (!b.lineas.some(l => String(l.nombre||"").trim())) { toast("Añade al menos un servicio."); return; }
+  const btn = $("#presPdfBtn"); if (btn) { btn.disabled = true; btn.innerHTML = "Generando…"; }
+  try {
+    const T = PRES_TX[b.lang === "ca" ? "ca" : "es"];
+    const blob = await pdfDesdeHTML(presupuestoHTML(b), { title: `${T.pres} ${b.cliente}`, author: (S.cfg.contacto||{}).firma || "Noel DJ" });
+    await saveFile(`${T.file} ${b.cliente || ""}${b.fecha ? " " + b.fecha : ""}.pdf`.replace(/[\\/:*?"<>|]/g,"").replace(/\s+/g," ").trim(), blob, "Presupuesto listo.", true);
+  } catch(err){ console.log("[NoelEvents] pres", err); toast("No se ha podido crear el PDF. Inténtalo otra vez."); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = I.pdf + " Crear PDF y compartir"; } }
 }
 
 /* ============ Eventos de interfaz ============ */
 document.addEventListener("pointerdown", ev => { const t = ev.target.closest(".tap"); if (t) { t.classList.add("pressed"); const up = () => { t.classList.remove("pressed"); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", up); }; window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up); } }, {passive:true});
 document.addEventListener("touchstart", ()=>{}, {passive:true});
 
+document.addEventListener("input", ev => { if (ev.target.closest && ev.target.closest("#presForm")) { collectPres(); const t = $("#presTot"); if (t) t.innerHTML = presTotHTML(presTotales(S.pres), S.pres.iva); } });
+document.addEventListener("change", ev => { if (ev.target.closest && ev.target.closest("#presForm")) { collectPres(); const t = $("#presTot"); if (t) t.innerHTML = presTotHTML(presTotales(S.pres), S.pres.iva); } });
 document.addEventListener("click", async ev => {
   const tabBtn = ev.target.closest("[data-tab]");
   if (tabBtn && !ev.target.closest("[data-act]")) { if (S.sheetMode) closeSheet(); S.tab = tabBtn.dataset.tab; try { localStorage.setItem("ne_tab", S.tab); } catch(_){} buzz(); render(true); return; }
@@ -1603,6 +1727,17 @@ document.addEventListener("click", async ev => {
     case "pdfpanel": { const p = $("#pdfPanel"); p.hidden = !p.hidden; if (!p.hidden) p.scrollIntoView({behavior:"smooth", block:"nearest"}); break; }
     case "plang": S.pdfLang = a.dataset.v; a.parentNode.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b===a)); break;
     case "mkpdf": { const e = S.events.find(x=>x.id===id); S.pdfCond = $("#pdfCond").checked; await makePdf(e, S.pdfLang, S.pdfCond); break; }
+    case "presnew": buzz(); openPres(); break;
+    case "preslang": collectPres(); S.pres.lang = a.dataset.v; presSave(); presRefresh(); break;
+    case "presadd": { collectPres(); const q = QUICK[+a.dataset.i], P = preciosGeneral(), b = S.pres;
+      const hayPack = b.lineas.some(x => esPack(x.nombre));
+      b.lineas.push({ nombre: q.nombre, precio: String(q.key === "fuego" && hayPack ? P.fuegoPack : P[q.key]), nota: "" });
+      if (esPack(q.nombre)) b.lineas.forEach(x => { if (/fuego/i.test(x.nombre) && num(x.precio) === num(P.fuego)) x.precio = String(P.fuegoPack); });
+      presSave(); presRefresh(); buzz(); break; }
+    case "presline": collectPres(); S.pres.lineas.push({ nombre:"", precio:"", nota:"" }); presSave(); presRefresh(); { const ins = document.querySelectorAll("#presForm .pres-l input[data-p$='.nombre']"); ins[ins.length-1]?.focus(); } break;
+    case "presrm": collectPres(); S.pres.lineas.splice(+a.dataset.i, 1); presSave(); presRefresh(); break;
+    case "presreset": S.pres = presNuevo(); presSave(); presRefresh(); toast("Presupuesto en blanco."); break;
+    case "prespdf": await presPdf(); break;
     case "carga": abrirCarga(a.dataset.id || id); break;
     case "cargaclose": cerrarCarga(); break;
     case "cargaitem": { const e = S.events.find(x => x.id === CARGA.id); if (!e) break; const c = { ...(e.cargado||{}) }, k = a.dataset.k;
