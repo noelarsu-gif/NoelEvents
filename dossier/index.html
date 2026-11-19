@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0B0A08">
-<meta name="description" content="Bodas reales: DJ, fotomatón, plataforma 360 y efectos especiales. Lleida y Cataluña.">
+<meta name="description" content="Bodas reales: DJ, fotomatón, plataforma 360 y efectos especiales en toda Cataluña.">
 <meta property="og:title" content="Noches que se recuerdan · Bodas">
 <meta property="og:description" content="DJ, fotomatón, plataforma 360 y efectos especiales en bodas reales.">
 <meta property="og:image" content="https://noelarsu-gif.github.io/NoelEvents/dossier/v/humo.jpg">
@@ -34,7 +34,8 @@ a{color:inherit}
 
 /* ---------- barra superior ---------- */
 .top{position:fixed;z-index:30;left:0;right:0;top:env(safe-area-inset-top,0px);display:flex;align-items:center;justify-content:space-between;
-  padding-block:14px;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));pointer-events:none}
+  padding-block:14px;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));pointer-events:none;transition:background .4s}
+.top.solid{background:linear-gradient(var(--bg) 70%,transparent)}
 .mark{font-family:var(--display);font-weight:400;font-size:20px;letter-spacing:.02em;pointer-events:auto;text-decoration:none}
 .mark b{font-weight:500;color:var(--gold2)}
 .mark small{display:block;font-family:var(--body);font-size:8.5px;font-weight:500;letter-spacing:.38em;text-transform:uppercase;color:var(--muted);margin-top:2px}
@@ -287,7 +288,7 @@ h1 em,h2 em{font-style:italic;color:var(--gold2);font-weight:300}
     <p class="lead" data-t="endP"></p>
     <div class="cards" data-t="endC"></div>
     <a class="cta" id="cta" hidden target="_blank" rel="noopener"><span data-t="endB"></span><span aria-hidden="true">→</span></a>
-    <div class="sign"><span id="signN">Noel Arroyo</span><small id="signS">Noel DJ · Music &amp; Events · Lleida</small></div>
+    <div class="sign"><span id="signN">Noel Arroyo</span><small id="signS">Noel DJ · Music &amp; Events · Catalunya</small></div>
     <p class="contact"><span>646 700 313</span><span class="dot">·</span><a href="https://www.instagram.com/noelevents/" target="_blank" rel="noopener">@noelevents</a></p>
     <p class="foot" data-t="foot"></p>
   </div>
@@ -309,7 +310,7 @@ const WHATSAPP = "34646700313";
 /* ===== Textos ES / CA ===== */
 const T = {
 es:{
-  heroEye:"Bodas · Lleida y Cataluña",
+  heroEye:"Bodas · Cataluña",
   heroH:"Noches que<br><em>se recuerdan</em>",
   heroP:"Música, fotomatón, plataforma 360 y efectos especiales para la fiesta de vuestra vida.",
   bodasW:"Bodas", cue:"Desliza", cue2:"Sigue deslizando",
@@ -342,7 +343,7 @@ es:{
   opEye:"Opiniones", opH:"Lo que dicen<br><em>las parejas</em>", opFoot:"Opiniones reales de nuestras parejas", boda:"Boda del"
 },
 ca:{
-  heroEye:"Casaments · Lleida i Catalunya",
+  heroEye:"Casaments · Catalunya",
   heroH:"Nits que<br><em>es recorden</em>",
   heroP:"Música, fotomatón, plataforma 360 i efectes especials per a la festa de la vostra vida.",
   bodasW:"Casaments", cue:"Llisca", cue2:"Continua lliscant",
@@ -477,7 +478,7 @@ const END = SC.mo.b;
 if (EV) {
   $("#mark").innerHTML = 'Noel <b>Events</b><small data-t="bodasW"></small>';
   $("#cMark").innerHTML = 'Noel <em>Events</em>'; document.querySelector("#curtain .s").textContent = LANG === "ca" ? "Casaments" : "Bodas";
-  $("#signN").textContent = "Noel Events"; $("#signS").textContent = "Fotomatón · Plataforma 360 · Lleida";
+  $("#signN").textContent = "Noel Events"; $("#signS").textContent = "Fotomatón · Plataforma 360 · Catalunya";
   document.title = "Noel Events · Experiencias";
 }
 const GO = {dj:"dj", foto:"foto", "360":"r360", fx:"fx", op:"op"};
@@ -723,6 +724,7 @@ const cueOk = () => lastS > SC.hero.b - .5 && lastS < END - .15;
 function cueIdle(){ cue2.classList.remove("on"); clearTimeout(idleT); idleT = setTimeout(() => cue2.classList.toggle("on", cueOk()), 1600); }
 const req = () => { cueIdle(); if (!ticking){ ticking = true; requestAnimationFrame(frame); } };
 addEventListener("scroll", req, {passive:true});
+(function(){const t=document.querySelector(".top"),e=document.getElementById("reservar");if(!t||!e)return;const f=()=>t.classList.toggle("solid",e.getBoundingClientRect().top<90);addEventListener("scroll",f,{passive:true});f();})();
 let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { const s = lastS; layout(); scrollTo(0, track.offsetTop + s*H); lastS=-1; frame(); }, 120); });
 
 chap.querySelectorAll("button").forEach(b => b.onclick = () => {
