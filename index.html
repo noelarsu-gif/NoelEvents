@@ -1564,15 +1564,15 @@ async function makePdf(e, lang, cond){
 
 /* ============ Presupuestos ============ */
 const PRES_TX = {
-  es: { gracEv:"Será un placer formar parte de vuestro evento.", webEv:"Nuestro trabajo en vídeo", pres:"Presupuesto", data:"Fecha del evento", lloc:"Lugar", emes:"Fecha", serveis:"Servicios", base:"Base imponible", iva:"IVA (21 %)", total:"Total", obs:"Observaciones", gracies:"Será un placer formar parte de vuestro día.", webSub:"Bodas reales en vídeo", file:"Presupuesto" },
-  ca: { gracEv:"Serà un plaer formar part del vostre esdeveniment.", webEv:"La nostra feina en vídeo", pres:"Pressupost", data:"Data de l’esdeveniment", lloc:"Lloc", emes:"Data", serveis:"Serveis", base:"Base imposable", iva:"IVA (21 %)", total:"Total", obs:"Observacions", gracies:"Serà un plaer formar part del vostre dia.", webSub:"Casaments reals en vídeo", file:"Pressupost" }
+  es: { para:"Para", gracEv:"Será un placer formar parte de vuestro evento.", webEv:"Nuestro trabajo en vídeo", pres:"Presupuesto", data:"Fecha del evento", lloc:"Lugar", emes:"Fecha", serveis:"Servicios", base:"Base imponible", iva:"IVA (21 %)", total:"Total", obs:"Observaciones", gracies:"Será un placer formar parte de vuestro día.", webSub:"Bodas reales en vídeo", file:"Presupuesto" },
+  ca: { para:"Per a", gracEv:"Serà un plaer formar part del vostre esdeveniment.", webEv:"La nostra feina en vídeo", pres:"Pressupost", data:"Data de l’esdeveniment", lloc:"Lloc", emes:"Data", serveis:"Serveis", base:"Base imposable", iva:"IVA (21 %)", total:"Total", obs:"Observacions", gracies:"Serà un plaer formar part del vostre dia.", webSub:"Casaments reals en vídeo", file:"Pressupost" }
 };
-const presNuevo = () => ({ cliente:"", fecha:"", lugar:"", lang: catLang(), tipo:"boda", iva:false, lineas:[], obs:"" });
+const presNuevo = () => ({ evento:"", cliente:"", fecha:"", lugar:"", lang: catLang(), tipo:"boda", iva:false, lineas:[], obs:"" });
 function presLoad(){ try { const v = JSON.parse(localStorage.getItem("ne_pres") || "null"); if (v && Array.isArray(v.lineas)) return v; } catch(_){} return presNuevo(); }
 function presSave(){ try { localStorage.setItem("ne_pres", JSON.stringify(S.pres)); } catch(_){} presAutoNube(); }
 // Presupuestos guardados (documento config/presupuestos → { items: { id: presupuesto } }), compartidos entre los dos móviles
 const presOrden = () => Object.values(S.presItems || {}).filter(Boolean).sort((a, b) => String(b.actualizado||"").localeCompare(String(a.actualizado||"")));
-const presTieneAlgo = b => !!(b && (String(b.cliente||"").trim() || (b.lineas||[]).some(l => String(l.nombre||"").trim())));
+const presTieneAlgo = b => !!(b && (String(b.cliente||"").trim() || String(b.evento||"").trim() || (b.lineas||[]).some(l => String(l.nombre||"").trim())));
 function presGuardarNube(b){
   if (!S.db || !presTieneAlgo(b)) return false;
   const ahora = new Date().toISOString();
@@ -1590,7 +1590,7 @@ function presListBody(){
   return `<button class="btn primary tap" data-act="presnew" style="width:100%">${I.plus} Nuevo presupuesto</button>
     ${L.length ? `<div class="pres-list">${L.map(b => { const t = presTotales(b), d = parseD(b.fecha);
       return `<div class="pres-it">
-        <button class="pres-main tap" data-act="presedit" data-id="${b.id}"><span class="pn">${esc(b.cliente || "Sin nombre")}</span>
+        <button class="pres-main tap" data-act="presedit" data-id="${b.id}"><span class="pn">${esc(String(b.evento||"").trim() || b.cliente || "Sin nombre")}</span>${String(b.evento||"").trim() && b.cliente ? `<span class="pm">${esc(b.cliente)}</span>` : ""}
           <span class="pm">${d ? fmtShort(b.fecha) : "Sin fecha"}${b.lugar ? " · " + esc(b.lugar) : ""}</span>
           <span class="pm"><b>${eur(t.total)}</b>${b.iva ? " IVA incl." : ""} · <span class="chip-st ${b.enviado ? "ok" : ""}">${b.enviado ? "PDF enviado" : "Borrador"}</span>${(b.tipo||"boda") !== "boda" ? " · Otro evento" : ""}</span></button>
         <div class="pres-acts"><button class="btn sm ghost tap" data-act="presdl" data-id="${b.id}" aria-label="Descargar PDF">${I.pdf}</button><button class="btn sm ghost tap pres-del" data-act="presdel" data-id="${b.id}" aria-label="Borrar">${I.trash || I.x}</button></div>
@@ -1616,7 +1616,8 @@ function presBody(){
     <div class="between" style="margin-bottom:6px"><span class="sub" style="margin:0">Idioma del PDF</span><div class="seg" role="tablist">${[["es","Castellano"],["ca","Català"]].map(([k,v]) => `<button type="button" class="tap ${b.lang===k?"on":""}" data-act="preslang" data-v="${k}">${v}</button>`).join("")}</div></div>
     <div class="grid2">
       <div class="between" style="grid-column:1/-1"><span class="sub" style="margin:0">Tipo de evento</span><div class="seg" role="tablist">${[["boda","Boda"],["otro","Otro evento"]].map(([k,v]) => `<button type="button" class="tap ${(b.tipo||"boda")===k?"on":""}" data-act="prestipo" data-v="${k}">${v}</button>`).join("")}</div></div>
-      <label class="f" style="grid-column:1/-1"><span>Cliente</span><input data-p="cliente" value="${esc(b.cliente)}" placeholder="Ej. Laia i Pol" autocomplete="off"></label>
+      <label class="f" style="grid-column:1/-1"><span>Nombre del evento</span><input data-p="evento" value="${esc(b.evento||"")}" placeholder="${(b.tipo||"boda") === "boda" ? "Ej. Boda de Laia i Pol (opcional)" : "Ej. Fiesta 15 años de Lucía"}" autocomplete="off"></label>
+      <label class="f" style="grid-column:1/-1"><span>Quién lo solicita</span><input data-p="cliente" value="${esc(b.cliente)}" placeholder="${(b.tipo||"boda") === "boda" ? "Ej. Laia i Pol" : "Ej. Marta García"}" autocomplete="off"></label>
       <label class="f"><span>Fecha del evento</span><input type="date" data-p="fecha" value="${esc(b.fecha)}"></label>
       <label class="f"><span>Lugar</span><input data-p="lugar" value="${esc(b.lugar)}" placeholder="Opcional"></label>
     </div>
@@ -1644,20 +1645,22 @@ function presupuestoHTML(b){
   const fd = s => { const x = parseD(s); return x ? R.de(x.getDate(), R.mes[x.getMonth()], x.getFullYear()) : ""; };
   const hoy = fd(todayIso());
   const boda = (b.tipo || "boda") === "boda";
-  const parts = boda ? (b.cliente||"").split(/\s+(?:i|y|&)\s+/i) : [b.cliente||""];
-  const names = parts.length === 2 ? `${esc(parts[0])} <span style="font-style:italic;color:#C9A961">${R.conj}</span> ${esc(parts[1])}` : esc(b.cliente || "—");
+  const evento = String(b.evento||"").trim(), titulo = evento || b.cliente || "";
+  const parts = boda && !evento ? titulo.split(/\s+(?:i|y|&)\s+/i) : [titulo];
+  const names = parts.length === 2 ? `${esc(parts[0])} <span style="font-style:italic;color:#C9A961">${R.conj}</span> ${esc(parts[1])}` : esc(titulo || "—");
   const ls = b.lineas.filter(l => String(l.nombre||"").trim() || num(l.precio));
   const big = ls.length > 4, lab = x => `<p style="margin:0;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#9C958A">${x}</p>`;
   const datos = [[T.data, fd(b.fecha)], [T.lloc, esc(b.lugar||"")], [T.emes, hoy]].filter(([,v]) => v);
   const web = dossierLink(dossierBase(), { marca: "dj" }, null, lang);
   const tel = "646 700 313", telNum = "34646700313";   // teléfono y WhatsApp del presupuesto
-  const wa = `https://wa.me/${telNum}?text=${encodeURIComponent(lang === "ca" ? `Hola Noel! Us escric pel pressupost${b.cliente ? " de " + b.cliente : ""}.` : `¡Hola Noel! Te escribo por el presupuesto${b.cliente ? " de " + b.cliente : ""}.`)}`;
+  const wa = `https://wa.me/${telNum}?text=${encodeURIComponent(lang === "ca" ? `Hola Noel! Us escric pel pressupost${titulo ? " de " + titulo : ""}.` : `¡Hola Noel! Te escribo por el presupuesto${titulo ? " de " + titulo : ""}.`)}`;
   const ph = [`<span data-link="${esc(wa)}" style="color:#C9A961">${esc(tel)}</span>`, `<span data-link="${IG_URL}" style="display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C9A961" stroke-width="1.9"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.4" cy="6.6" r="0.9" fill="#C9A961" stroke="none"/></svg>@noelevents</span>`].join(`<span style="color:#5f594f">·</span>`);
   return `<div class="pp" style="width:794px;height:1123px;box-sizing:border-box;background:#060302;color:#F3EEE4;font-family:Montserrat,sans-serif;display:flex;flex-direction:column;overflow:hidden">
     <img src="${!boda ? IMG.heroEv : lang === "ca" ? IMG.heroCa : IMG.hero}" data-pos="${boda ? "center 100%" : "center 62%"}" style="width:794px;height:auto;display:block" alt="">
     <div style="flex:1;display:flex;flex-direction:column;gap:${big?18:24}px;padding:30px 72px 40px">
       <div style="display:flex;flex-direction:column;gap:12px"><p style="margin:0;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#C9A961;font-weight:600">${T.pres}</p>
-        <h1 style="margin:0;font-family:'Cormorant Garamond',serif;font-weight:400;font-size:${(b.cliente||"").length>24?50:62}px;line-height:1">${names}</h1></div>
+        <h1 style="margin:0;font-family:'Cormorant Garamond',serif;font-weight:400;font-size:${titulo.length>34?44:titulo.length>24?50:62}px;line-height:1">${names}</h1>
+        ${evento && String(b.cliente||"").trim() ? `<p style="margin:2px 0 0;font-size:14px;letter-spacing:.04em;color:#B9B2A6"><span style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#9C958A;margin-right:10px">${T.para}</span>${esc(b.cliente.trim())}</p>` : ""}</div>
       ${datos.length ? `<div style="display:grid;grid-template-columns:${datos.map((d,i) => i === 1 ? "1.2fr" : "1fr").join(" ")};gap:24px;border-top:1px solid #3A342A;border-bottom:1px solid #3A342A;padding:20px 0">
         ${datos.map(([k,v]) => `<div style="display:flex;flex-direction:column;gap:6px">${lab(k)}<p style="margin:0;font-family:'Playfair Display',serif;font-size:${big?21:23}px">${v}</p></div>`).join("")}</div>` : ""}
       <div style="display:flex;flex-direction:column"><p style="margin:0 0 6px;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#9C958A">${T.serveis}</p>
@@ -1690,8 +1693,9 @@ async function presPdf(){
   try {
     const T = PRES_TX[b.lang === "ca" ? "ca" : "es"];
     b.enviado = new Date().toISOString(); presGuardarNube(b);
-    const blob = await pdfDesdeHTML(presupuestoHTML(b), { title: `${T.pres} ${b.cliente}`, author: (S.cfg.contacto||{}).firma || "Noel DJ" });
-    await saveFile(`${T.file} ${b.cliente || ""}${b.fecha ? " " + b.fecha : ""}.pdf`.replace(/[\\/:*?"<>|]/g,"").replace(/\s+/g," ").trim(), blob, "Presupuesto listo.", true);
+    const nom = String(b.evento||"").trim() || b.cliente || "";
+    const blob = await pdfDesdeHTML(presupuestoHTML(b), { title: `${T.pres} ${nom}`, author: (S.cfg.contacto||{}).firma || "Noel DJ" });
+    await saveFile(`${T.file} ${nom}${b.fecha ? " " + b.fecha : ""}.pdf`.replace(/[\\/:*?"<>|]/g,"").replace(/\s+/g," ").trim(), blob, "Presupuesto listo.", true);
   } catch(err){ console.log("[NoelEvents] pres", err); toast("No se ha podido crear el PDF. Inténtalo otra vez."); }
   finally { if (btn) { btn.disabled = false; btn.innerHTML = I.pdf + " Crear PDF y compartir"; } }
 }
@@ -1782,8 +1786,8 @@ document.addEventListener("click", async ev => {
     case "presedit": { const b = (S.presItems||{})[a.dataset.id]; if (b) { buzz(); openPres(b); } break; }
     case "pressave": collectPres(); if (presGuardarNube(S.pres)) { toast("Presupuesto guardado."); openPresList(); } else toast("Escribe el cliente o añade un servicio para guardarlo."); break;
     case "presdl": { const b = (S.presItems||{})[a.dataset.id]; if (!b) break; a.disabled = true;
-      try { const T = PRES_TX[b.lang === "ca" ? "ca" : "es"]; const blob = await pdfDesdeHTML(presupuestoHTML(b), { title: `${T.pres} ${b.cliente}` });
-        await saveFile(`${T.file} ${b.cliente || ""}${b.fecha ? " " + b.fecha : ""}.pdf`, blob, "Presupuesto listo.", true); } catch(err){ console.log("[NoelEvents] pres", err); toast("No se ha podido crear el PDF."); }
+      try { const T = PRES_TX[b.lang === "ca" ? "ca" : "es"], nom = String(b.evento||"").trim() || b.cliente || ""; const blob = await pdfDesdeHTML(presupuestoHTML(b), { title: `${T.pres} ${nom}` });
+        await saveFile(`${T.file} ${nom}${b.fecha ? " " + b.fecha : ""}.pdf`, blob, "Presupuesto listo.", true); } catch(err){ console.log("[NoelEvents] pres", err); toast("No se ha podido crear el PDF."); }
       a.disabled = false; break; }
     case "presdel": { if (!a.classList.contains("sure")) { a.classList.add("sure"); a.innerHTML = "¿Borrar?"; setTimeout(() => { if (a.isConnected) { a.classList.remove("sure"); a.innerHTML = I.trash || I.x; } }, 3500); break; }
       presBorrar(a.dataset.id); toast("Presupuesto borrado."); $("#sheetBody").innerHTML = maskMoney(presListBody()); break; }
