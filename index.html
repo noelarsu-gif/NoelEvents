@@ -500,6 +500,8 @@ const CAT_DEFAULT = { tarifas: [
   { id: "general", nombre: "General", precios: { ...CAT_BASE } },
   { id: "carme", nombre: "Hostal del Carme", precios: { ...CAT_BASE, dj:550, packDjFoto:850, packDj360:950, packCompleto:1290 } },
   TORRENS ], v: 3 };
+const IG_URL = "https://www.instagram.com/noelevents/";
+const WA_NOEL = "https://wa.me/34646700313";
 const DOSSIER_DEF = "https://noelarsu-gif.github.io/NoelEvents/dossier/";
 const DOSSIER_OLD = "https://drive.google.com/drive/folders/1Y12ArM-ZZsHUgZzgyPQsDZK2lXC7IIQ_?usp=drive_link";
 const dossierBase = () => { const d = S.cats && S.cats.dossier; return (d === undefined || d === DOSSIER_OLD) ? DOSSIER_DEF : d; };
@@ -642,6 +644,7 @@ async function buildCatalog(t, dossier, lang = "es"){
         enlaces.push([BX, BY, BW, BH, dossierLink(dossier, t, pg === 3 ? "foto" : "360", lang)]);
       }
       if (pg === 8) {
+        enlaces.push([400, 2950, 520, 120, WA_NOEL], [1085, 2975, 330, 80, IG_URL]);
         const [x, y, w, h] = [216, 2262, 1949, 300];
         const g = ctx.createLinearGradient(x, y, x + w, y + h); g.addColorStop(0, "rgb(232,208,150)"); g.addColorStop(.55, GOLD); g.addColorStop(1, "rgb(176,142,72)");
         ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
@@ -658,7 +661,7 @@ async function buildCatalog(t, dossier, lang = "es"){
   pdf.setProperties(t.marca === "events" ? { title: TX.title + " Noel Events 2027", author: "Noel Events" } : { title: TX.title + " Noel DJ 2027", author: "Noel DJ · Music & Events" });
   return pdf.output("blob");
 }
-const catKey = t => JSON.stringify([t.precios, t.servicios || null, t.marca || "dj", dossierBase(), catLang(), 6]);
+const catKey = t => JSON.stringify([t.precios, t.servicios || null, t.marca || "dj", dossierBase(), catLang(), 7]);
 // Enlace directo a la web en vídeo (con la marca, servicios e idioma de la tarifa)
 async function webDo(modo, t){
   const lang = catLang(), url = dossierLink(dossierBase(), t, null, lang) || DOSSIER_DEF;
@@ -1464,7 +1467,7 @@ function reservaHTML(e, lang, cond){
   const obs = (e.observaciones||"").trim() || (p0 ? T.senal(eur(pagado(e)), (e.pagos.length===1 ? p0.metodo : ""), (e.pagos.length===1 && p0.fecha) ? fmtP(p0.fecha) : "") : "");
   const items = (e.servicios||[]).map(s=>[trName(s.nombre, lang), num(s.precio)]); if (num(e.desplazamiento)) items.push([T.despl, num(e.desplazamiento)]);
   const big = items.length > 3;
-  const ph = (c.telefono ? `<span style="display:inline-flex;align-items:center;gap:8px;color:#C9A961"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9A961" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>${esc(c.telefono)}</span>`:"") + (c.instagram ? `<span style="display:inline-flex;align-items:center;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9A961" stroke-width="1.8"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.4" cy="6.6" r="0.9" fill="#C9A961" stroke="none"/></svg>${esc(c.instagram)}</span>`:"");
+  const ph = (c.telefono ? `<span data-link="${WA_NOEL}" style="display:inline-flex;align-items:center;gap:8px;color:#C9A961"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9A961" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>${esc(c.telefono)}</span>`:"") + (c.instagram ? `<span data-link="${IG_URL}" style="display:inline-flex;align-items:center;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9A961" stroke-width="1.8"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.4" cy="6.6" r="0.9" fill="#C9A961" stroke="none"/></svg>${esc(c.instagram)}</span>`:"");
   const page = (bg, inner, extra) => `<div class="pp" style="width:794px;height:1123px;box-sizing:border-box;background:${bg};color:#F3EEE4;font-family:Montserrat,sans-serif;display:flex;flex-direction:column;overflow:hidden;${extra||""}">${inner}</div>`;
   const lab = t => `<p style="margin:0;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#9C958A">${t}</p>`;
   const p1 = page("#060302", `
@@ -1649,7 +1652,7 @@ function presupuestoHTML(b){
   const web = dossierLink(dossierBase(), { marca: "dj" }, null, lang);
   const tel = "646 700 313", telNum = "34646700313";   // teléfono y WhatsApp del presupuesto
   const wa = `https://wa.me/${telNum}?text=${encodeURIComponent(lang === "ca" ? `Hola Noel! Us escric pel pressupost${b.cliente ? " de " + b.cliente : ""}.` : `¡Hola Noel! Te escribo por el presupuesto${b.cliente ? " de " + b.cliente : ""}.`)}`;
-  const ph = [`<span style="color:#C9A961">${esc(tel)}</span>`, c.instagram && `<span>${esc(c.instagram)}</span>`].filter(Boolean).join(`<span style="color:#5f594f">·</span>`);
+  const ph = [`<span data-link="${esc(wa)}" style="color:#C9A961">${esc(tel)}</span>`, `<span data-link="${IG_URL}" style="display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C9A961" stroke-width="1.9"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.4" cy="6.6" r="0.9" fill="#C9A961" stroke="none"/></svg>@noelevents</span>`].join(`<span style="color:#5f594f">·</span>`);
   return `<div class="pp" style="width:794px;height:1123px;box-sizing:border-box;background:#060302;color:#F3EEE4;font-family:Montserrat,sans-serif;display:flex;flex-direction:column;overflow:hidden">
     <img src="${!boda ? IMG.heroEv : lang === "ca" ? IMG.heroCa : IMG.hero}" data-pos="${boda ? "center 100%" : "center 62%"}" style="width:794px;height:auto;display:block" alt="">
     <div style="flex:1;display:flex;flex-direction:column;gap:${big?18:24}px;padding:30px 72px 40px">
