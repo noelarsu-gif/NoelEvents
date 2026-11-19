@@ -1389,6 +1389,7 @@ function download(filename, blob){
 }
 // share=true: abre el menú de compartir del móvil (WhatsApp, Mail…) si existe; si no, descarga
 async function saveFile(filename, data, okMsg, share){
+  filename = String(filename).replace(/(\d{4})-(\d{2})-(\d{2})/g, "$3-$2-$1"); // fechas en formato español DD-MM-AAAA
   filename = String(filename).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[·’]/g, " ").replace(/[^\x20-\x7E]/g, "").replace(/\s+/g, " ").trim(); // nombres sin acentos: algunos móviles los rompen
   const ext = filename.split(".").pop().toLowerCase();
   const blob = data instanceof Blob ? data : new Blob([data], { type: (MIME[ext]||"text/plain") + ";charset=utf-8" });
